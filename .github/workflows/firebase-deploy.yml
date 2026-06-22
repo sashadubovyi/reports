@@ -23,6 +23,8 @@ jobs:
 
       - name: Build production legacy bundle
         run: npm run build
+        env:
+          VITE_FINNHUB_API_KEY: ${{ secrets.VITE_FINNHUB_API_KEY }}
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
