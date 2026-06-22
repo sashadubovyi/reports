@@ -1,5 +1,6 @@
 import { getCompanyByTicker } from '../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate, formatGroupDate, isUpcoming } from '../utils/dateUtils.js';
+import CompanyLogo from './CompanyLogo.jsx';
 
 export default function EarningsCard({ reportDate, earnings }) {
   const upcoming = isUpcoming(reportDate);
@@ -23,14 +24,17 @@ export default function EarningsCard({ reportDate, earnings }) {
           return (
             <div key={earning.id} className="px-4 py-3 space-y-2">
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-base font-bold text-gray-900">
-                    {company ? company.name : earning.ticker}{' '}
-                    <span className="text-gray-400 font-normal">({earning.ticker})</span>
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {earning.quarter} · {timingLabel}
-                  </p>
+                <div className="flex items-start gap-2.5">
+                  <CompanyLogo domain={company?.domain} ticker={earning.ticker} />
+                  <div>
+                    <p className="text-base font-bold text-gray-900">
+                      {company ? company.name : earning.ticker}{' '}
+                      <span className="text-gray-400 font-normal">({earning.ticker})</span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {earning.quarter} · {timingLabel}
+                    </p>
+                  </div>
                 </div>
                 <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-brand flex-shrink-0">
                   {earning.marketTiming}
