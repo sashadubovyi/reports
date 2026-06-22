@@ -11,8 +11,8 @@ export default function EarningsCard({ reportDate, earnings }) {
   const recordingUrl = earnings.find((earning) => earning.recordingUrl)?.recordingUrl;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+    <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
         <h2 className="text-sm font-bold text-brand">{formatGroupDate(reportDate)}</h2>
       </div>
 

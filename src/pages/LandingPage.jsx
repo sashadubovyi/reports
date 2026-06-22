@@ -7,7 +7,7 @@ export default function LandingPage({ earnings }) {
   const [filter, setFilter] = useState('upcoming');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <Header />
       <FilterTabs activeTab={filter} onChange={setFilter} />
       <EarningsList earnings={earnings} filter={filter} />
