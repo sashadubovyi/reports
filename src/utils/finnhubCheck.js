@@ -64,14 +64,27 @@ export async function fetchEarningsDiscrepancies(earnings) {
 
   const byTicker = new Map();
   for (const item of items) {
-    if (!byTicker.has(item.symbol)) byTicker.set(item.symbol, item);
+    if (!byTicker.has(item.symbol)) byTicker.set(item.symbol, []);
+    byTicker.get(item.symbol).push(item);
   }
 
   const discrepancies = [];
 
   for (const earning of upcoming) {
-    const match = byTicker.get(earning.ticker);
-    if (!match) continue;
+    const candidates = byTicker.get(earning.ticker);
+    if (!candidates) continue;
+
+    // A 120-day window can contain two reporting events for the same ticker
+    // (this quarter and the next), so pick whichever is closest to our
+    // stored date instead of an arbitrary one — otherwise estimates get
+    // compared across mismatched quarters, producing nonsense diffs.
+    const match = candidates.reduce((closest, candidate) =>
+      !closest ||
+      Math.abs(new Date(candidate.date) - new Date(earning.reportDate)) <
+        Math.abs(new Date(closest.date) - new Date(earning.reportDate))
+        ? candidate
+        : closest,
+    );
 
     if (match.date && match.date !== earning.reportDate) {
       discrepancies.push({
