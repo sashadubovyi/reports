@@ -1,12 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminLogin from '../components/admin/AdminLogin.jsx';
 import AdminForm from '../components/admin/AdminForm.jsx';
 import AdminEarningsTable from '../components/admin/AdminEarningsTable.jsx';
+import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
+import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
 
 export default function AdminPage({ earnings, setEarnings }) {
   const [authed, setAuthed] = useState(() => window.sessionStorage.getItem('otkritie-admin-authed') === 'true');
   const [editingEarning, setEditingEarning] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [lastCheck, setLastCheck] = useLocalStorage('otkritie-finnhub-last-check', null);
+  const [discrepancies, setDiscrepancies] = useLocalStorage('otkritie-finnhub-discrepancies', []);
+  const [checkStatus, setCheckStatus] = useState(null);
+
+  useEffect(() => {
+    if (!authed || !shouldRunCheck(lastCheck)) return;
+    setCheckStatus('checking');
+    fetchEarningsDiscrepancies(earnings)
+      .then((found) => {
+        setDiscrepancies(found);
+        setLastCheck(new Date().toISOString());
+        setCheckStatus('ok');
+      })
+      .catch((err) => {
+        console.error('Finnhub check failed:', err);
+        setCheckStatus('error');
+      });
+    // Runs once per admin session/day; intentionally not re-triggered by earnings edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed]);
+
+  function handleApplyDiscrepancy(target) {
+    setEarnings((prev) =>
+      prev.map((e) => (e.id === target.earningId ? { ...e, [target.field]: target.newValue } : e)),
+    );
+    setDiscrepancies((prev) => prev.filter((d) => d !== target));
+  }
+
+  function handleDismissDiscrepancy(target) {
+    setDiscrepancies((prev) => prev.filter((d) => d !== target));
+  }
 
   function handleLoginSuccess() {
     window.sessionStorage.setItem('otkritie-admin-authed', 'true');
@@ -48,6 +82,14 @@ export default function AdminPage({ earnings, setEarnings }) {
           На главную
         </a>
       </div>
+
+      <DiscrepancyBanner
+        discrepancies={discrepancies}
+        checkStatus={checkStatus}
+        lastCheck={lastCheck}
+        onApply={handleApplyDiscrepancy}
+        onDismiss={handleDismissDiscrepancy}
+      />
 
       {showForm ? (
         <AdminForm
