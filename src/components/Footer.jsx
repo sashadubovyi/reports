@@ -1,11 +1,8 @@
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-400 px-4 py-6">
-      <div className="max-w-2xl mx-auto flex flex-col items-center text-center space-y-3">
-        <a href="?page=admin" className="inline-block">
-          <img src="/broker.svg" alt="Admin" className="h-6 w-auto opacity-70 hover:opacity-100 transition-opacity" />
-        </a>
-        <div className="text-[11px] leading-snug space-y-0.5">
+      <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+        <div className="text-[11px] leading-snug space-y-0.5 text-left">
           <p className="font-semibold text-gray-300">Правовая информация</p>
           <p>АО «ОТКРЫТИЕ БРОКЕР Эл Ти Ди» © 2026</p>
           <p>
@@ -13,6 +10,9 @@ export default function Footer() {
             Кипра (CySec)
           </p>
         </div>
+        <a href="?page=admin" className="inline-block flex-shrink-0">
+          <img src="/broker.svg" alt="Admin" className="h-6 w-auto opacity-70 hover:opacity-100 transition-opacity" />
+        </a>
       </div>
     </footer>
   );
