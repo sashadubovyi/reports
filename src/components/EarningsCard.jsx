@@ -2,6 +2,14 @@ import { getCompanyByTicker } from '../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate, formatGroupDate, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
+function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
+  if (raw === undefined || raw === null || raw === '') return null;
+  const num = parseFloat(raw);
+  if (Number.isNaN(num)) return null;
+  const sign = num >= 0 ? '+' : '-';
+  return { text: `${sign}${prefix}${Math.abs(num)}${suffix}`, positive: num >= 0 };
+}
+
 export default function EarningsCard({ reportDate, earnings }) {
   const upcoming = isUpcoming(reportDate);
   const webinarDate = earnings
@@ -21,6 +29,9 @@ export default function EarningsCard({ reportDate, earnings }) {
         {earnings.map((earning) => {
           const company = getCompanyByTicker(earning.ticker);
           const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия рынка' : 'После закрытия рынка';
+          const gapDollar = formatSigned(earning.gapDollar, { prefix: '$' });
+          const gapPercent = formatSigned(earning.gapPercent, { suffix: '%' });
+          const gap = gapDollar || gapPercent;
           return (
             <div key={earning.id} className="px-4 py-3 space-y-2">
               <div className="flex items-start justify-between">
@@ -51,6 +62,17 @@ export default function EarningsCard({ reportDate, earnings }) {
                   <p className="font-semibold text-gray-800">{earning.revenueEstimate || '—'}</p>
                 </div>
               </div>
+
+              {!upcoming && gap ? (
+                <div className="flex items-center gap-1.5 text-sm">
+                  <span className="text-gray-400 text-xs">Гэп на открытии:</span>
+                  <span className={`font-semibold ${gap.positive ? 'text-green-600' : 'text-red-600'}`}>
+                    {gapDollar ? gapDollar.text : ''}
+                    {gapDollar && gapPercent ? ' ' : ''}
+                    {gapPercent ? `(${gapPercent.text})` : ''}
+                  </span>
+                </div>
+              ) : null}
             </div>
           );
         })}

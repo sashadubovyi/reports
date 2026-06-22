@@ -9,6 +9,8 @@ const EMPTY_FORM = {
   marketTiming: 'BMO',
   epsEstimate: '',
   revenueEstimate: '',
+  gapDollar: '',
+  gapPercent: '',
   registrationUrl: '',
   recordingUrl: '',
 };
@@ -18,7 +20,7 @@ export default function AdminForm({ editingEarning, onSave, onCancel }) {
 
   useEffect(() => {
     if (editingEarning) {
-      setForm(editingEarning);
+      setForm({ ...EMPTY_FORM, ...editingEarning });
     } else {
       setForm(EMPTY_FORM);
     }
@@ -124,6 +126,29 @@ export default function AdminForm({ editingEarning, onSave, onCancel }) {
             type="text"
             value={form.revenueEstimate}
             onChange={(e) => update('revenueEstimate', e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="flex space-x-3">
+        <div className="flex-1 space-y-1">
+          <label className="text-xs text-gray-500">Гэп на открытии, $</label>
+          <input
+            type="text"
+            value={form.gapDollar}
+            onChange={(e) => update('gapDollar', e.target.value)}
+            placeholder="например, -1.80 или 3.12"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex-1 space-y-1">
+          <label className="text-xs text-gray-500">Гэп на открытии, %</label>
+          <input
+            type="text"
+            value={form.gapPercent}
+            onChange={(e) => update('gapPercent', e.target.value)}
+            placeholder="например, -1.2 или 2.35"
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
