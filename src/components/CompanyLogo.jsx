@@ -14,7 +14,7 @@ export default function CompanyLogo({ domain, ticker }) {
 
   if (index >= sources.length) {
     return (
-      <div className="w-9 h-9 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500 flex-shrink-0">
+      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 flex-shrink-0">
         {ticker.slice(0, 2)}
       </div>
     );
@@ -25,7 +25,7 @@ export default function CompanyLogo({ domain, ticker }) {
       key={sources[index]}
       src={sources[index]}
       alt=""
-      className="w-9 h-9 rounded border border-gray-200 bg-white object-contain flex-shrink-0"
+      className="w-8 h-8 rounded object-contain flex-shrink-0"
       onError={() => setIndex((i) => i + 1)}
     />
   );

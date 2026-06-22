@@ -11,8 +11,10 @@ export default function LandingPage({ earnings }) {
       <Header />
       <FilterTabs activeTab={filter} onChange={setFilter} />
       <EarningsList earnings={earnings} filter={filter} />
-      <footer className="text-center text-xs text-gray-400 py-6">
-        <a href="?page=admin">Admin</a>
+      <footer className="text-center py-6">
+        <a href="?page=admin" className="inline-block">
+          <img src="/minilogo.png" alt="Admin" className="h-5 w-5 mx-auto grayscale opacity-40" />
+        </a>
       </footer>
     </div>
   );
