@@ -48,6 +48,11 @@ export function formatDisplayDate(isoDate) {
   });
 }
 
+export function formatGroupDate(isoDate) {
+  const date = parseISODate(isoDate);
+  return `${date.getDate()}.${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function isUpcoming(reportDate, referenceDate = new Date()) {
   const ref = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
   return parseISODate(reportDate).getTime() >= ref.getTime();

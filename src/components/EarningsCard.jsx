@@ -1,6 +1,5 @@
 import { getCompanyByTicker } from '../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate, isUpcoming } from '../utils/dateUtils.js';
-import TradingViewWidget from './TradingViewWidget.jsx';
 
 export default function EarningsCard({ earning }) {
   const company = getCompanyByTicker(earning.ticker);
@@ -23,8 +22,6 @@ export default function EarningsCard({ earning }) {
         </span>
       </div>
 
-      <TradingViewWidget ticker={earning.ticker} />
-
       <div className="flex text-sm">
         <div className="flex-1 space-y-1">
           <p className="text-gray-400 text-xs">EPS (прогноз)</p>
@@ -38,8 +35,8 @@ export default function EarningsCard({ earning }) {
 
       <div className="border-t border-gray-100 pt-3 space-y-1 text-sm">
         <p className="text-gray-600">
-          <span className="text-gray-400">Дата отчёта: </span>
-          {formatDisplayDate(earning.reportDate)} ({timingLabel})
+          <span className="text-gray-400">Время отчёта: </span>
+          {timingLabel}
         </p>
         <p className="text-gray-600">
           <span className="text-gray-400">Дата вебинара: </span>

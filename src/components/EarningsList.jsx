@@ -1,13 +1,20 @@
 import EarningsCard from './EarningsCard.jsx';
-import { isUpcoming } from '../utils/dateUtils.js';
+import { isUpcoming, formatGroupDate } from '../utils/dateUtils.js';
+
+function groupByReportDate(earnings) {
+  const groups = new Map();
+  earnings.forEach((earning) => {
+    const list = groups.get(earning.reportDate) || [];
+    list.push(earning);
+    groups.set(earning.reportDate, list);
+  });
+  return groups;
+}
 
 export default function EarningsList({ earnings, filter }) {
-  const filtered = earnings
-    .filter((e) => (filter === 'upcoming' ? isUpcoming(e.reportDate) : !isUpcoming(e.reportDate)))
-    .sort((a, b) => {
-      if (filter === 'upcoming') return a.reportDate.localeCompare(b.reportDate);
-      return b.reportDate.localeCompare(a.reportDate);
-    });
+  const filtered = earnings.filter((e) =>
+    filter === 'upcoming' ? isUpcoming(e.reportDate) : !isUpcoming(e.reportDate)
+  );
 
   if (filtered.length === 0) {
     return (
@@ -17,10 +24,22 @@ export default function EarningsList({ earnings, filter }) {
     );
   }
 
+  const groups = groupByReportDate(filtered);
+  const sortedDates = Array.from(groups.keys()).sort((a, b) =>
+    filter === 'upcoming' ? a.localeCompare(b) : b.localeCompare(a)
+  );
+
   return (
-    <div className="px-4 py-4 space-y-4">
-      {filtered.map((earning) => (
-        <EarningsCard key={earning.id} earning={earning} />
+    <div className="px-4 py-4 space-y-6">
+      {sortedDates.map((reportDate) => (
+        <div key={reportDate} className="space-y-3">
+          <h2 className="text-sm font-bold text-brand">{formatGroupDate(reportDate)}</h2>
+          <div className="space-y-4">
+            {groups.get(reportDate).map((earning) => (
+              <EarningsCard key={earning.id} earning={earning} />
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );

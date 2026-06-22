@@ -9,7 +9,7 @@ export const INITIAL_EARNINGS = [
     marketTiming: 'AMC',
     epsEstimate: '1.62',
     revenueEstimate: '94.3B',
-    registrationUrl: 'https://otkritie-broker.example/webinar/aapl-q2-2026',
+    registrationUrl: '',
     recordingUrl: '',
   },
   {
@@ -20,7 +20,7 @@ export const INITIAL_EARNINGS = [
     marketTiming: 'AMC',
     epsEstimate: '3.15',
     revenueEstimate: '68.1B',
-    registrationUrl: 'https://otkritie-broker.example/webinar/msft-q2-2026',
+    registrationUrl: '',
     recordingUrl: '',
   },
   {
@@ -31,7 +31,7 @@ export const INITIAL_EARNINGS = [
     marketTiming: 'AMC',
     epsEstimate: '0.58',
     revenueEstimate: '26.4B',
-    registrationUrl: 'https://otkritie-broker.example/webinar/tsla-q2-2026',
+    registrationUrl: '',
     recordingUrl: '',
   },
   {
@@ -42,7 +42,7 @@ export const INITIAL_EARNINGS = [
     marketTiming: 'BMO',
     epsEstimate: '1.21',
     revenueEstimate: '158.7B',
-    registrationUrl: 'https://otkritie-broker.example/webinar/amzn-q2-2026',
+    registrationUrl: '',
     recordingUrl: '',
   },
   {
@@ -53,7 +53,7 @@ export const INITIAL_EARNINGS = [
     marketTiming: 'AMC',
     epsEstimate: '0.89',
     revenueEstimate: '32.5B',
-    registrationUrl: 'https://otkritie-broker.example/webinar/nvda-q2-2026',
+    registrationUrl: '',
     recordingUrl: '',
   },
   {
@@ -65,7 +65,7 @@ export const INITIAL_EARNINGS = [
     epsEstimate: '5.34',
     revenueEstimate: '42.0B',
     registrationUrl: '',
-    recordingUrl: 'https://otkritie-broker.example/recording/meta-q1-2026',
+    recordingUrl: '',
   },
   {
     id: 'seed-7',
@@ -76,7 +76,7 @@ export const INITIAL_EARNINGS = [
     epsEstimate: '2.05',
     revenueEstimate: '83.6B',
     registrationUrl: '',
-    recordingUrl: 'https://otkritie-broker.example/recording/goog-q1-2026',
+    recordingUrl: '',
   },
   {
     id: 'seed-8',
@@ -87,7 +87,7 @@ export const INITIAL_EARNINGS = [
     epsEstimate: '4.42',
     revenueEstimate: '44.1B',
     registrationUrl: '',
-    recordingUrl: 'https://otkritie-broker.example/recording/jpm-q1-2026',
+    recordingUrl: '',
   },
   {
     id: 'seed-9',
@@ -98,6 +98,6 @@ export const INITIAL_EARNINGS = [
     epsEstimate: '6.18',
     revenueEstimate: '10.9B',
     registrationUrl: '',
-    recordingUrl: 'https://otkritie-broker.example/recording/nflx-q1-2026',
+    recordingUrl: '',
   },
 ];
