@@ -1,3 +1,4 @@
+import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { getCompanyByTicker } from '../../data/companies.js';
 import { formatDisplayDate } from '../../utils/dateUtils.js';
 
@@ -12,6 +13,7 @@ export default function AdminEarningsTable({ earnings, onEdit, onDelete }) {
     <div className="space-y-2">
       {sorted.map((earning) => {
         const company = getCompanyByTicker(earning.ticker);
+        const TimingIcon = earning.marketTiming === 'BMO' ? LuSunrise : LuSunset;
         return (
           <div
             key={earning.id}
@@ -21,8 +23,9 @@ export default function AdminEarningsTable({ earnings, onEdit, onDelete }) {
               <p className="text-sm font-semibold text-gray-800">
                 {earning.ticker} — {company ? company.name : ''}
               </p>
-              <p className="text-xs text-gray-500">
-                {earning.quarter} · {formatDisplayDate(earning.reportDate)} · {earning.marketTiming}
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                {earning.quarter} · {formatDisplayDate(earning.reportDate)} ·{' '}
+                <TimingIcon className="w-3.5 h-3.5" title={earning.marketTiming} />
               </p>
             </div>
             <div className="flex space-x-2 flex-shrink-0">

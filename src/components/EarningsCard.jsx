@@ -1,3 +1,4 @@
+import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { getCompanyByTicker } from '../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate, formatGroupDate, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
@@ -29,6 +30,7 @@ export default function EarningsCard({ reportDate, earnings }) {
         {earnings.map((earning) => {
           const company = getCompanyByTicker(earning.ticker);
           const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия рынка' : 'После закрытия рынка';
+          const TimingIcon = earning.marketTiming === 'BMO' ? LuSunrise : LuSunset;
           const gapDollar = formatSigned(earning.gapDollar, { prefix: '$' });
           const gapPercent = formatSigned(earning.gapPercent, { suffix: '%' });
           const gap = gapDollar || gapPercent;
@@ -47,8 +49,12 @@ export default function EarningsCard({ reportDate, earnings }) {
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-brand flex-shrink-0">
-                  {earning.marketTiming}
+                <span
+                  className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
+                  title={timingLabel}
+                  aria-label={timingLabel}
+                >
+                  <TimingIcon className="w-4 h-4" />
                 </span>
               </div>
 

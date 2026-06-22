@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { COMPANIES } from '../../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate } from '../../utils/dateUtils.js';
 
@@ -90,7 +91,9 @@ export default function AdminForm({ editingEarning, onSave, onCancel }) {
               checked={form.marketTiming === 'BMO'}
               onChange={() => update('marketTiming', 'BMO')}
             />
-            <span>До открытия (BMO)</span>
+            <span className="inline-flex items-center gap-1">
+              <LuSunrise className="w-4 h-4" /> До открытия (BMO)
+            </span>
           </label>
           <label className="flex items-center space-x-1">
             <input
@@ -100,7 +103,9 @@ export default function AdminForm({ editingEarning, onSave, onCancel }) {
               checked={form.marketTiming === 'AMC'}
               onChange={() => update('marketTiming', 'AMC')}
             />
-            <span>После закрытия (AMC)</span>
+            <span className="inline-flex items-center gap-1">
+              <LuSunset className="w-4 h-4" /> После закрытия (AMC)
+            </span>
           </label>
         </div>
         {webinarPreview ? (
