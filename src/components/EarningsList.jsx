@@ -1,5 +1,5 @@
 import EarningsCard from './EarningsCard.jsx';
-import { isUpcoming, formatGroupDate } from '../utils/dateUtils.js';
+import { isUpcoming } from '../utils/dateUtils.js';
 
 function groupByReportDate(earnings) {
   const groups = new Map();
@@ -30,16 +30,9 @@ export default function EarningsList({ earnings, filter }) {
   );
 
   return (
-    <div className="px-4 py-4 space-y-6">
+    <div className="px-4 py-4 space-y-4">
       {sortedDates.map((reportDate) => (
-        <div key={reportDate} className="space-y-3">
-          <h2 className="text-sm font-bold text-brand">{formatGroupDate(reportDate)}</h2>
-          <div className="space-y-4">
-            {groups.get(reportDate).map((earning) => (
-              <EarningsCard key={earning.id} earning={earning} />
-            ))}
-          </div>
-        </div>
+        <EarningsCard key={reportDate} reportDate={reportDate} earnings={groups.get(reportDate)} />
       ))}
     </div>
   );
