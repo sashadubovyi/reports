@@ -1,9 +1,18 @@
 import { useState } from 'react';
 
-export default function CompanyLogo({ domain, ticker }) {
-  const [failed, setFailed] = useState(false);
+// Tried in order until one loads. Clearbit's domain-based lookup is blocked
+// in some regions/networks, so a ticker-based source is tried first.
+function buildSources(domain, ticker) {
+  const sources = [`https://images.financialmodelingprep.com/symbol/${ticker}.png`];
+  if (domain) sources.push(`https://logo.clearbit.com/${domain}`);
+  return sources;
+}
 
-  if (!domain || failed) {
+export default function CompanyLogo({ domain, ticker }) {
+  const [sources] = useState(() => buildSources(domain, ticker));
+  const [index, setIndex] = useState(0);
+
+  if (index >= sources.length) {
     return (
       <div className="w-9 h-9 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500 flex-shrink-0">
         {ticker.slice(0, 2)}
@@ -13,10 +22,11 @@ export default function CompanyLogo({ domain, ticker }) {
 
   return (
     <img
-      src={`https://logo.clearbit.com/${domain}`}
+      key={sources[index]}
+      src={sources[index]}
       alt=""
       className="w-9 h-9 rounded border border-gray-200 bg-white object-contain flex-shrink-0"
-      onError={() => setFailed(true)}
+      onError={() => setIndex((i) => i + 1)}
     />
   );
 }
