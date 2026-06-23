@@ -1,12 +1,19 @@
+import { LuTrash2 } from 'react-icons/lu';
 import { formatDisplayDate } from '../../utils/dateUtils.js';
 import { groupByReportDate, getGroupSharedFields } from '../../utils/groupEarnings.js';
 
-export default function AdminGroupTable({ earnings, onEdit, onToggleWebinarEnded }) {
+export default function AdminGroupTable({ earnings, onEdit, onToggleWebinarEnded, onDeleteGroup }) {
   const groups = groupByReportDate(earnings);
   const sortedDates = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
 
   if (sortedDates.length === 0) {
     return <p className="text-sm text-gray-500">Карточек пока нет</p>;
+  }
+
+  function handleDelete(reportDate, tickers) {
+    if (window.confirm(`Удалить группу ${tickers} (${formatDisplayDate(reportDate)}) целиком? Это действие нельзя отменить.`)) {
+      onDeleteGroup(reportDate);
+    }
   }
 
   return (
@@ -41,6 +48,14 @@ export default function AdminGroupTable({ earnings, onEdit, onToggleWebinarEnded
                 className="text-xs font-semibold text-brand px-2 py-1"
               >
                 Изменить
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(reportDate, tickers)}
+                className="text-red-500 p-1"
+                aria-label={`Удалить группу ${tickers} целиком`}
+              >
+                <LuTrash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

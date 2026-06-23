@@ -76,6 +76,10 @@ export default function AdminPage({ earnings, setEarnings }) {
     });
   }
 
+  function handleDeleteGroup(reportDate) {
+    setEarnings((prev) => prev.filter((e) => e.reportDate !== reportDate));
+  }
+
   // Replaces the original group's member records (snapshotted in
   // editingGroupEarnings) with the dialog's returned set in one atomic
   // update, so edits, additions, and removals all land together.
@@ -141,7 +145,12 @@ export default function AdminPage({ earnings, setEarnings }) {
           </div>
         )}
 
-        <AdminGroupTable earnings={earnings} onEdit={handleEditGroup} onToggleWebinarEnded={handleToggleWebinarEnded} />
+        <AdminGroupTable
+          earnings={earnings}
+          onEdit={handleEditGroup}
+          onToggleWebinarEnded={handleToggleWebinarEnded}
+          onDeleteGroup={handleDeleteGroup}
+        />
       </main>
     </div>
   );
