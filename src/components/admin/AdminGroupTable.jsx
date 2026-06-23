@@ -3,7 +3,7 @@ import { groupByReportDate, getGroupSharedLinks } from '../../utils/groupEarning
 
 export default function AdminGroupTable({ earnings, onEdit }) {
   const groups = groupByReportDate(earnings);
-  const sortedDates = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
+  const sortedDates = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
 
   if (sortedDates.length === 0) {
     return <p className="text-sm text-gray-500">Карточек пока нет</p>;

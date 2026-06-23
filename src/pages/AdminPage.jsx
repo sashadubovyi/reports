@@ -6,12 +6,14 @@ import AdminAddToGroupForm from '../components/admin/AdminAddToGroupForm.jsx';
 import AdminGroupTable from '../components/admin/AdminGroupTable.jsx';
 import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { useAdminAuth } from '../hooks/useAdminAuth.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
 import { groupByReportDate } from '../utils/groupEarnings.js';
 
 // 'closed' | 'newCard' | 'addToGroup' | 'editGroup'
 export default function AdminPage({ earnings, setEarnings }) {
-  const [authed, setAuthed] = useState(() => window.sessionStorage.getItem('otkritie-admin-authed') === 'true');
+  const { user, loading, logout } = useAdminAuth();
+  const authed = Boolean(user);
   const [formMode, setFormMode] = useState('closed');
   const [editingGroupEarnings, setEditingGroupEarnings] = useState(null);
   const [lastCheck, setLastCheck] = useLocalStorage('otkritie-finnhub-last-check', null);
@@ -46,11 +48,6 @@ export default function AdminPage({ earnings, setEarnings }) {
     setDiscrepancies((prev) => prev.filter((d) => d !== target));
   }
 
-  function handleLoginSuccess() {
-    window.sessionStorage.setItem('otkritie-admin-authed', 'true');
-    setAuthed(true);
-  }
-
   function closeForm() {
     setFormMode('closed');
     setEditingGroupEarnings(null);
@@ -81,17 +78,26 @@ export default function AdminPage({ earnings, setEarnings }) {
     closeForm();
   }
 
+  if (loading) {
+    return null;
+  }
+
   if (!authed) {
-    return <AdminLogin onSuccess={handleLoginSuccess} />;
+    return <AdminLogin />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-gray-900">Админ-панель</h1>
-        <a href="?" className="text-xs text-gray-500">
-          На главную
-        </a>
+        <div className="flex items-center gap-3">
+          <a href="?" className="text-xs text-gray-500">
+            На главную
+          </a>
+          <button type="button" onClick={logout} className="text-xs text-gray-500">
+            Выйти
+          </button>
+        </div>
       </div>
 
       <main className="space-y-4">
