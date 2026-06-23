@@ -65,7 +65,11 @@ export default function NewsList({ status, articles, search = '', onRefresh }) {
   const canRefresh = status === 'loaded' || status === 'refreshing' || status === 'error';
   const refreshRow =
     canRefresh && !cooldownActive ? (
-      <button type="button" onClick={handleRefreshClick} className="text-xs text-gray-400 hover:text-gray-600 hover:underline">
+      <button
+        type="button"
+        onClick={handleRefreshClick}
+        className="block w-full text-center text-sm text-gray-400 hover:text-gray-600 hover:underline mb-2"
+      >
         Обновить новости
       </button>
     ) : null;
@@ -82,7 +86,7 @@ export default function NewsList({ status, articles, search = '', onRefresh }) {
 
   if (status === 'error') {
     return (
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 pt-3 pb-4">
         {refreshRow}
         <p className="text-center text-red-600 text-sm py-10">Не удалось загрузить новости. Попробуйте позже.</p>
       </div>
@@ -91,7 +95,7 @@ export default function NewsList({ status, articles, search = '', onRefresh }) {
 
   if (filtered.length === 0) {
     return (
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 pt-3 pb-4">
         {refreshRow}
         <p className="text-center text-gray-500 text-sm py-10">
           {query ? 'Новости по запросу не найдены' : 'Новостей пока нет'}
@@ -104,21 +108,23 @@ export default function NewsList({ status, articles, search = '', onRefresh }) {
   const hasMore = visibleCount < filtered.length;
 
   return (
-    <div className="px-4 py-4 space-y-3">
+    <div className="px-4 pt-3 pb-4">
       {refreshRow}
-      {status === 'refreshing' ? <p className="text-xs text-gray-400">Обновление…</p> : null}
-      {visible.map(({ article, matchedCompanies }) => (
-        <NewsCard key={article.id} article={article} matchedCompanies={matchedCompanies} />
-      ))}
-      {hasMore ? (
-        <button
-          type="button"
-          onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-          className="block w-full text-center bg-white border border-gray-300 rounded-lg py-2.5 text-sm font-semibold text-brand hover:bg-gray-50"
-        >
-          Загрузить ещё (+{PAGE_SIZE})
-        </button>
-      ) : null}
+      {status === 'refreshing' ? <p className="text-xs text-gray-400 text-center mb-2">Обновление…</p> : null}
+      <div className="space-y-3">
+        {visible.map(({ article, matchedCompanies }) => (
+          <NewsCard key={article.id} article={article} matchedCompanies={matchedCompanies} />
+        ))}
+        {hasMore ? (
+          <button
+            type="button"
+            onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+            className="block w-full text-center bg-white border border-gray-300 rounded-lg py-2.5 text-sm font-semibold text-brand hover:bg-gray-50"
+          >
+            Загрузить ещё (+{PAGE_SIZE})
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
