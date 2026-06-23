@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { COMPANIES } from '../../data/companies.js';
-import { calculateWebinarDate, formatDisplayDate } from '../../utils/dateUtils.js';
+import { calculateWebinarDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
 
 const EMPTY_FORM = {
   ticker: COMPANIES[0].ticker,
@@ -110,7 +110,7 @@ export default function AdminForm({ editingEarning, onSave, onCancel }) {
         </div>
         {webinarPreview ? (
           <p className="text-xs text-gray-500">
-            Дата вебинара (расчёт): <span className="font-semibold text-brand">{formatDisplayDate(webinarPreview)}</span>
+            Дата вебинара (расчёт): <span className="font-semibold text-brand">{formatWebinarDateTime(webinarPreview)}</span>
           </p>
         ) : null}
       </div>

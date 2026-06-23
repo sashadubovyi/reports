@@ -1,6 +1,6 @@
 import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { getCompanyByTicker } from '../data/companies.js';
-import { calculateWebinarDate, formatDisplayDate, formatGroupDate, isUpcoming } from '../utils/dateUtils.js';
+import { calculateWebinarDate, formatGroupDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
@@ -88,7 +88,7 @@ export default function EarningsCard({ reportDate, earnings }) {
       <div className="border-t border-gray-100 px-4 py-3 space-y-2">
         <p className="text-sm text-gray-600">
           <span className="text-gray-500">Дата вебинара: </span>
-          {formatDisplayDate(webinarDate)}
+          {formatWebinarDateTime(webinarDate)}
         </p>
         {upcoming ? (
           registrationUrl ? (

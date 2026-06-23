@@ -48,6 +48,13 @@ export function formatDisplayDate(isoDate) {
   });
 }
 
+// All webinars run at a fixed time, regardless of the report date.
+export const WEBINAR_TIME_LABEL = '16:00 МСК';
+
+export function formatWebinarDateTime(isoDate) {
+  return `${formatDisplayDate(isoDate)}, ${WEBINAR_TIME_LABEL}`;
+}
+
 export function formatGroupDate(isoDate) {
   const date = parseISODate(isoDate);
   return `${date.getDate()}.${String(date.getMonth() + 1).padStart(2, '0')}`;
