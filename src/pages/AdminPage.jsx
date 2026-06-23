@@ -11,7 +11,8 @@ import Modal from '../components/Modal.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAdminAuth } from '../hooks/useAdminAuth.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
-import { groupByReportDate } from '../utils/groupEarnings.js';
+import { deriveQuarterLabel } from '../utils/dateUtils.js';
+import { findActiveEarning, getGroupSharedFields, groupByReportDate } from '../utils/groupEarnings.js';
 
 // 'closed' | 'newCard' | 'addToGroup' | 'editGroup'
 export default function AdminPage({ earnings, setEarnings, companies, onSaveCompany, onDeleteCompany }) {
@@ -21,6 +22,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   const [formMode, setFormMode] = useState('closed');
   const [editingGroupEarnings, setEditingGroupEarnings] = useState(null);
   const [editingCompanyTicker, setEditingCompanyTicker] = useState(null);
+  const [editingCompanyEarning, setEditingCompanyEarning] = useState(null);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [lastCheck, setLastCheck] = useLocalStorage('otkritie-finnhub-last-check', null);
   const [discrepancies, setDiscrepancies] = useLocalStorage('otkritie-finnhub-discrepancies', []);
@@ -88,16 +90,64 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
 
   function handleEditCompany(ticker) {
     setEditingCompanyTicker(ticker);
+    setEditingCompanyEarning(findActiveEarning(earnings, ticker));
     setCompanyFormOpen(true);
   }
 
   function closeCompanyForm() {
     setCompanyFormOpen(false);
     setEditingCompanyTicker(null);
+    setEditingCompanyEarning(null);
   }
 
-  function handleSaveCompany(company) {
+  // Moves a ticker's active (upcoming, not-ended) card to match the date set
+  // in the Companies tab: updates EPS/revenue in place if the date didn't
+  // change, otherwise joins (or creates) the webinar group for the new date.
+  // Groups have no document of their own — they're just earnings rows that
+  // share a reportDate — so leaving the old date naturally empties the old
+  // group with no separate delete needed.
+  function migrateCompanyEarning(ticker, previousEarning, newDate, epsEstimate, revenueEstimate) {
+    if (!newDate) {
+      if (previousEarning) {
+        setEarnings((prev) => prev.filter((e) => e.id !== previousEarning.id));
+      }
+      return;
+    }
+
+    if (previousEarning && previousEarning.reportDate === newDate) {
+      setEarnings((prev) =>
+        prev.map((e) => (e.id === previousEarning.id ? { ...e, epsEstimate, revenueEstimate } : e)),
+      );
+      return;
+    }
+
+    setEarnings((prev) => {
+      const destinationGroup = prev.filter((e) => e.reportDate === newDate && e.id !== previousEarning?.id);
+      const shared = getGroupSharedFields(destinationGroup);
+      const movedEntry = {
+        id: previousEarning?.id || `e-${Date.now()}`,
+        ticker,
+        quarter: deriveQuarterLabel(newDate),
+        reportDate: newDate,
+        marketTiming: previousEarning?.marketTiming || 'BMO',
+        epsEstimate,
+        revenueEstimate,
+        gapDollar: '',
+        gapPercent: '',
+        registrationUrl: shared.registrationUrl,
+        recordingUrl: shared.recordingUrl,
+        webinarEnded: shared.webinarEnded,
+      };
+      return previousEarning
+        ? prev.map((e) => (e.id === previousEarning.id ? movedEntry : e))
+        : [...prev, movedEntry];
+    });
+  }
+
+  function handleSaveCompany(formResult) {
+    const { reportDate, epsEstimate, revenueEstimate, ...company } = formResult;
     onSaveCompany(company);
+    migrateCompanyEarning(company.ticker, editingCompanyEarning, reportDate, epsEstimate, revenueEstimate);
     closeCompanyForm();
   }
 
@@ -218,6 +268,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
             <AdminCompanyForm
               editingCompany={companies.find((c) => c.ticker === editingCompanyTicker) || null}
               existingTickers={companies.map((c) => c.ticker)}
+              activeEarning={editingCompanyEarning}
               onSave={handleSaveCompany}
               onCancel={closeCompanyForm}
             />

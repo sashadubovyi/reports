@@ -1,14 +1,28 @@
 import { useEffect, useState } from 'react';
 
-const EMPTY_FORM = { ticker: '', name: '', logoUrl: '' };
+const EMPTY_FORM = { ticker: '', name: '', logoUrl: '', reportDate: '', epsEstimate: '', revenueEstimate: '' };
 
-export default function AdminCompanyForm({ editingCompany, existingTickers, onSave, onCancel }) {
+export default function AdminCompanyForm({ editingCompany, existingTickers, activeEarning, onSave, onCancel }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setForm(editingCompany ? { domain: '', ...editingCompany } : EMPTY_FORM);
+    setForm(
+      editingCompany
+        ? {
+            ...EMPTY_FORM,
+            domain: '',
+            ...editingCompany,
+            reportDate: activeEarning?.reportDate || '',
+            epsEstimate: activeEarning?.epsEstimate || '',
+            revenueEstimate: activeEarning?.revenueEstimate || '',
+          }
+        : EMPTY_FORM,
+    );
     setError('');
+    // activeEarning is snapshotted by the parent alongside editingCompany when
+    // the modal opens, so it intentionally isn't re-applied on every change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingCompany]);
 
   function update(field, value) {
@@ -23,7 +37,15 @@ export default function AdminCompanyForm({ editingCompany, existingTickers, onSa
       setError('Такой тикер уже существует');
       return;
     }
-    onSave({ ...form, ticker, name: form.name.trim(), logoUrl: form.logoUrl.trim() });
+    onSave({
+      ...form,
+      ticker,
+      name: form.name.trim(),
+      logoUrl: form.logoUrl.trim(),
+      reportDate: form.reportDate,
+      epsEstimate: form.epsEstimate.trim(),
+      revenueEstimate: form.revenueEstimate.trim(),
+    });
   }
 
   return (
@@ -63,6 +85,40 @@ export default function AdminCompanyForm({ editingCompany, existingTickers, onSa
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
         />
         <p className="text-xs text-gray-400">Если не указано, логотип подбирается автоматически по тикеру/домену.</p>
+      </div>
+
+      <div className="space-y-1 border-t border-gray-100 pt-3">
+        <label className="text-xs text-gray-500">Дата отчётности</label>
+        <input
+          type="date"
+          value={form.reportDate}
+          onChange={(e) => update('reportDate', e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+        <p className="text-xs text-gray-400">
+          Изменение даты автоматически переносит компанию в карточку другой группы (или создаёт новую).
+        </p>
+      </div>
+
+      <div className="flex space-x-3">
+        <div className="flex-1 space-y-1">
+          <label className="text-xs text-gray-500">EPS (прогноз)</label>
+          <input
+            type="text"
+            value={form.epsEstimate}
+            onChange={(e) => update('epsEstimate', e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex-1 space-y-1">
+          <label className="text-xs text-gray-500">Выручка (прогноз)</label>
+          <input
+            type="text"
+            value={form.revenueEstimate}
+            onChange={(e) => update('revenueEstimate', e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
       </div>
 
       {error ? <p className="text-red-600 text-xs">{error}</p> : null}

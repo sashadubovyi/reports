@@ -64,3 +64,10 @@ export function isUpcoming(reportDate, referenceDate = new Date()) {
   const ref = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
   return parseISODate(reportDate).getTime() >= ref.getTime();
 }
+
+// Used to label a newly scheduled card when a date is set without a quarter
+// being entered explicitly (e.g. via the Companies tab's date field).
+export function deriveQuarterLabel(reportDate) {
+  const [year, month] = reportDate.split('-').map(Number);
+  return `Q${Math.ceil(month / 3)} ${year}`;
+}

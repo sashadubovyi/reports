@@ -1,3 +1,5 @@
+import { isUpcoming } from './dateUtils.js';
+
 export function groupByReportDate(earnings) {
   const groups = new Map();
   earnings.forEach((earning) => {
@@ -16,4 +18,13 @@ export function getGroupSharedFields(groupEarnings) {
     recordingUrl: groupEarnings.find((e) => e.recordingUrl)?.recordingUrl || '',
     webinarEnded: groupEarnings.some((e) => e.webinarEnded),
   };
+}
+
+// The single not-yet-ended, upcoming card for a ticker — the one the
+// Companies tab's date/EPS/revenue fields edit and smart-reassign. Past or
+// already-ended cards for the same ticker are left untouched.
+export function findActiveEarning(earnings, ticker) {
+  const candidates = earnings.filter((e) => e.ticker === ticker && isUpcoming(e.reportDate) && !e.webinarEnded);
+  if (candidates.length === 0) return null;
+  return candidates.sort((a, b) => a.reportDate.localeCompare(b.reportDate))[0];
 }
