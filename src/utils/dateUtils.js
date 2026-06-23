@@ -55,6 +55,17 @@ export function formatWebinarDateTime(isoDate) {
   return `${formatDisplayDate(isoDate)}, ${WEBINAR_TIME_LABEL}`;
 }
 
+// Past cards show only the date (full month name, no time) — the webinar
+// time is no longer relevant once it's already happened.
+export function formatPastCardDate(isoDate) {
+  const date = parseISODate(isoDate);
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 export function formatGroupDate(isoDate) {
   const date = parseISODate(isoDate);
   return `${date.getDate()}.${String(date.getMonth() + 1).padStart(2, '0')}`;

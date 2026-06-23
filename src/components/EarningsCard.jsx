@@ -1,5 +1,5 @@
 import { LuSunrise, LuSunset } from 'react-icons/lu';
-import { calculateWebinarDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
+import { calculateWebinarDate, formatPastCardDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
@@ -23,8 +23,14 @@ export default function EarningsCard({ reportDate, earnings, companyByTicker }) 
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
       <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
         <h2 className="text-sm font-bold text-brand">
-          <span className="text-gray-500 font-normal">Дата вебинара: </span>
-          {formatWebinarDateTime(webinarDate)}
+          {upcoming ? (
+            <>
+              <span className="text-gray-500 font-normal">Дата вебинара: </span>
+              {formatWebinarDateTime(webinarDate)}
+            </>
+          ) : (
+            formatPastCardDate(webinarDate)
+          )}
         </h2>
       </div>
 
@@ -47,18 +53,21 @@ export default function EarningsCard({ reportDate, earnings, companyByTicker }) 
                       <span className="text-gray-500 font-normal">({earning.ticker})</span>
                     </p>
                     <p className="text-xs text-gray-500">
-                      {earning.quarter} · {timingLabel}
+                      {earning.quarter}
+                      {upcoming ? ` · ${timingLabel}` : ''}
                     </p>
                   </div>
                 </div>
-                <span
-                  role="img"
-                  className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
-                  title={timingLabel}
-                  aria-label={timingLabel}
-                >
-                  <TimingIcon className="w-4 h-4" />
-                </span>
+                {upcoming ? (
+                  <span
+                    role="img"
+                    className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
+                    title={timingLabel}
+                    aria-label={timingLabel}
+                  >
+                    <TimingIcon className="w-4 h-4" />
+                  </span>
+                ) : null}
               </div>
 
               <div className="flex text-sm">
@@ -70,18 +79,17 @@ export default function EarningsCard({ reportDate, earnings, companyByTicker }) 
                   <p className="text-gray-500 text-xs">Выручка (прогноз)</p>
                   <p className="font-semibold text-gray-800">{earning.revenueEstimate || '—'}</p>
                 </div>
+                {!upcoming && gap ? (
+                  <div className="flex-1 space-y-1">
+                    <p className="text-gray-500 text-xs">Гэп на открытии</p>
+                    <p className={`font-semibold ${gap.positive ? 'text-green-600' : 'text-red-600'}`}>
+                      {gapDollar ? gapDollar.text : ''}
+                      {gapDollar && gapPercent ? ' ' : ''}
+                      {gapPercent ? `(${gapPercent.text})` : ''}
+                    </p>
+                  </div>
+                ) : null}
               </div>
-
-              {!upcoming && gap ? (
-                <div className="flex items-center gap-1.5 text-sm">
-                  <span className="text-gray-500 text-xs">Гэп на открытии:</span>
-                  <span className={`font-semibold ${gap.positive ? 'text-green-600' : 'text-red-600'}`}>
-                    {gapDollar ? gapDollar.text : ''}
-                    {gapDollar && gapPercent ? ' ' : ''}
-                    {gapPercent ? `(${gapPercent.text})` : ''}
-                  </span>
-                </div>
-              ) : null}
             </div>
           );
         })}
