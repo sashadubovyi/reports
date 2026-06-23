@@ -30,6 +30,7 @@ export default function AdminLogin() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
+          autoComplete="email"
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           autoFocus
         />
@@ -38,6 +39,7 @@ export default function AdminLogin() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Пароль"
+          autoComplete="current-password"
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
         />
         {error ? <p className="text-red-600 text-xs">{error}</p> : null}
