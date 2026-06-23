@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
 import AdminLogin from '../components/admin/AdminLogin.jsx';
 import AdminForm from '../components/admin/AdminForm.jsx';
-import AdminEarningsTable from '../components/admin/AdminEarningsTable.jsx';
+import AdminGroupForm from '../components/admin/AdminGroupForm.jsx';
+import AdminAddToGroupForm from '../components/admin/AdminAddToGroupForm.jsx';
+import AdminGroupTable from '../components/admin/AdminGroupTable.jsx';
 import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
+import { groupByReportDate } from '../utils/groupEarnings.js';
 
+// 'closed' | 'newCard' | 'addToGroup' | 'editGroup'
 export default function AdminPage({ earnings, setEarnings }) {
   const [authed, setAuthed] = useState(() => window.sessionStorage.getItem('otkritie-admin-authed') === 'true');
-  const [editingEarning, setEditingEarning] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode] = useState('closed');
+  const [editingGroupEarnings, setEditingGroupEarnings] = useState(null);
   const [lastCheck, setLastCheck] = useLocalStorage('otkritie-finnhub-last-check', null);
   const [discrepancies, setDiscrepancies] = useLocalStorage('otkritie-finnhub-discrepancies', []);
   const [checkStatus, setCheckStatus] = useState(null);
@@ -47,27 +51,34 @@ export default function AdminPage({ earnings, setEarnings }) {
     setAuthed(true);
   }
 
-  function handleSave(data) {
-    setEarnings((prev) => {
-      const exists = prev.some((e) => e.id === data.id);
-      return exists ? prev.map((e) => (e.id === data.id ? data : e)) : [...prev, data];
-    });
-    setShowForm(false);
-    setEditingEarning(null);
+  function closeForm() {
+    setFormMode('closed');
+    setEditingGroupEarnings(null);
   }
 
-  function handleEdit(earning) {
-    setEditingEarning(earning);
-    setShowForm(true);
+  function handleSaveNewCard(data) {
+    setEarnings((prev) => [...prev, data]);
+    closeForm();
   }
 
-  function handleDelete(id) {
-    setEarnings((prev) => prev.filter((e) => e.id !== id));
+  function handleSaveAddToGroup(data) {
+    setEarnings((prev) => [...prev, data]);
+    closeForm();
   }
 
-  function handleAddNew() {
-    setEditingEarning(null);
-    setShowForm(true);
+  function handleEditGroup(reportDate) {
+    const groups = groupByReportDate(earnings);
+    setEditingGroupEarnings(groups.get(reportDate) || []);
+    setFormMode('editGroup');
+  }
+
+  // Replaces the original group's member records (snapshotted in
+  // editingGroupEarnings) with the dialog's returned set in one atomic
+  // update, so edits, additions, and removals all land together.
+  function handleSaveGroup(updatedGroupEarnings) {
+    const originalIds = new Set(editingGroupEarnings.map((e) => e.id));
+    setEarnings((prev) => [...prev.filter((e) => !originalIds.has(e.id)), ...updatedGroupEarnings]);
+    closeForm();
   }
 
   if (!authed) {
@@ -92,26 +103,32 @@ export default function AdminPage({ earnings, setEarnings }) {
           onDismiss={handleDismissDiscrepancy}
         />
 
-        {showForm ? (
-          <AdminForm
-            editingEarning={editingEarning}
-            onSave={handleSave}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingEarning(null);
-            }}
-          />
+        {formMode === 'newCard' ? (
+          <AdminForm editingEarning={null} onSave={handleSaveNewCard} onCancel={closeForm} />
+        ) : formMode === 'addToGroup' ? (
+          <AdminAddToGroupForm earnings={earnings} onSave={handleSaveAddToGroup} onCancel={closeForm} />
+        ) : formMode === 'editGroup' ? (
+          <AdminGroupForm groupEarnings={editingGroupEarnings} onSave={handleSaveGroup} onCancel={closeForm} />
         ) : (
-          <button
-            type="button"
-            onClick={handleAddNew}
-            className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
-          >
-            + Добавить карточку
-          </button>
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={() => setFormMode('newCard')}
+              className="flex-1 bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
+            >
+              + Новая карточка
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormMode('addToGroup')}
+              className="flex-1 bg-gray-100 text-gray-700 font-semibold rounded-md py-2.5 text-sm"
+            >
+              + В существующую группу
+            </button>
+          </div>
         )}
 
-        <AdminEarningsTable earnings={earnings} onEdit={handleEdit} onDelete={handleDelete} />
+        <AdminGroupTable earnings={earnings} onEdit={handleEditGroup} />
       </main>
     </div>
   );
