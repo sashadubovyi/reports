@@ -23,8 +23,9 @@ export default function NewsList({ status, articles, search = '' }) {
   );
 
   const filtered = useMemo(() => {
-    if (!query) return enriched;
-    return enriched.filter(({ matchedCompanies }) =>
+    const tracked = enriched.filter(({ matchedCompanies }) => matchedCompanies.length > 0);
+    if (!query) return tracked;
+    return tracked.filter(({ matchedCompanies }) =>
       matchedCompanies.some(
         (company) => company.ticker.toLowerCase().includes(query) || company.name.toLowerCase().includes(query),
       ),
