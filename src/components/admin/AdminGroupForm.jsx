@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { LuSunrise, LuSunset, LuTrash2 } from 'react-icons/lu';
 import { COMPANIES } from '../../data/companies.js';
 import { calculateWebinarDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
-import { getGroupSharedLinks } from '../../utils/groupEarnings.js';
+import { getGroupSharedFields } from '../../utils/groupEarnings.js';
 
 function rowFromEarning(earning) {
   return {
@@ -21,14 +21,16 @@ export default function AdminGroupForm({ groupEarnings, onSave, onCancel }) {
   const [reportDate, setReportDate] = useState('');
   const [registrationUrl, setRegistrationUrl] = useState('');
   const [recordingUrl, setRecordingUrl] = useState('');
+  const [webinarEnded, setWebinarEnded] = useState(false);
   const [rows, setRows] = useState([]);
   const [addTicker, setAddTicker] = useState('');
 
   useEffect(() => {
     setReportDate(groupEarnings[0]?.reportDate || '');
-    const links = getGroupSharedLinks(groupEarnings);
-    setRegistrationUrl(links.registrationUrl);
-    setRecordingUrl(links.recordingUrl);
+    const shared = getGroupSharedFields(groupEarnings);
+    setRegistrationUrl(shared.registrationUrl);
+    setRecordingUrl(shared.recordingUrl);
+    setWebinarEnded(shared.webinarEnded);
     setRows(groupEarnings.map(rowFromEarning));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupEarnings]);
@@ -69,6 +71,7 @@ export default function AdminGroupForm({ groupEarnings, onSave, onCancel }) {
       reportDate,
       registrationUrl,
       recordingUrl,
+      webinarEnded,
     }));
     onSave(updated);
   }
@@ -119,6 +122,18 @@ export default function AdminGroupForm({ groupEarnings, onSave, onCancel }) {
           placeholder="https://..."
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
         />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="webinarEnded"
+          checked={webinarEnded}
+          onChange={(e) => setWebinarEnded(e.target.checked)}
+        />
+        <label htmlFor="webinarEnded" className="text-xs text-gray-500">
+          Вебинар закончился (сразу переносит карточку в «Прошедшие»)
+        </label>
       </div>
 
       <div className="space-y-3 border-t border-gray-100 pt-3">

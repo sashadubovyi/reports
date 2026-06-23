@@ -13,7 +13,9 @@ function matchesSearch(earning, query) {
 export default function EarningsList({ earnings, filter, search = '' }) {
   const query = search.trim().toLowerCase();
   const filtered = earnings.filter(
-    (e) => (filter === 'upcoming' ? isUpcoming(e.reportDate) : !isUpcoming(e.reportDate)) && matchesSearch(e, query),
+    (e) =>
+      (filter === 'upcoming' ? isUpcoming(e.reportDate) && !e.webinarEnded : !isUpcoming(e.reportDate) || e.webinarEnded) &&
+      matchesSearch(e, query),
   );
 
   if (filtered.length === 0) {
