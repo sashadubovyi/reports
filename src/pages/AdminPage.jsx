@@ -69,6 +69,13 @@ export default function AdminPage({ earnings, setEarnings }) {
     setFormMode('editGroup');
   }
 
+  function handleToggleWebinarEnded(reportDate) {
+    setEarnings((prev) => {
+      const isEnded = prev.some((e) => e.reportDate === reportDate && e.webinarEnded);
+      return prev.map((e) => (e.reportDate === reportDate ? { ...e, webinarEnded: !isEnded } : e));
+    });
+  }
+
   // Replaces the original group's member records (snapshotted in
   // editingGroupEarnings) with the dialog's returned set in one atomic
   // update, so edits, additions, and removals all land together.
@@ -134,7 +141,7 @@ export default function AdminPage({ earnings, setEarnings }) {
           </div>
         )}
 
-        <AdminGroupTable earnings={earnings} onEdit={handleEditGroup} />
+        <AdminGroupTable earnings={earnings} onEdit={handleEditGroup} onToggleWebinarEnded={handleToggleWebinarEnded} />
       </main>
     </div>
   );

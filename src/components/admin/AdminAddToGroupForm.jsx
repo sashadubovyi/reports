@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { COMPANIES } from '../../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
-import { groupByReportDate, getGroupSharedLinks } from '../../utils/groupEarnings.js';
+import { groupByReportDate, getGroupSharedFields } from '../../utils/groupEarnings.js';
 
 export default function AdminAddToGroupForm({ earnings, onSave, onCancel }) {
   const groups = groupByReportDate(earnings);
@@ -17,7 +17,7 @@ export default function AdminAddToGroupForm({ earnings, onSave, onCancel }) {
 
   const groupEarnings = groups.get(reportDate) || [];
   const availableCompanies = COMPANIES.filter((c) => !groupEarnings.some((e) => e.ticker === c.ticker));
-  const { registrationUrl, recordingUrl } = getGroupSharedLinks(groupEarnings);
+  const { registrationUrl, recordingUrl, webinarEnded } = getGroupSharedFields(groupEarnings);
   const webinarPreview = reportDate ? calculateWebinarDate(reportDate, marketTiming) : null;
 
   if (sortedDates.length === 0) {
@@ -50,6 +50,7 @@ export default function AdminAddToGroupForm({ earnings, onSave, onCancel }) {
       gapPercent: '',
       registrationUrl,
       recordingUrl,
+      webinarEnded,
     });
   }
 

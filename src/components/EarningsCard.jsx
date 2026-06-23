@@ -12,7 +12,7 @@ function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
 }
 
 export default function EarningsCard({ reportDate, earnings }) {
-  const upcoming = isUpcoming(reportDate);
+  const upcoming = isUpcoming(reportDate) && !earnings.some((earning) => earning.webinarEnded);
   const webinarDate = earnings
     .map((earning) => calculateWebinarDate(earning.reportDate, earning.marketTiming))
     .sort()
