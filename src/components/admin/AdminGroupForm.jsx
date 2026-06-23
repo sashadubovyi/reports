@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { LuSunrise, LuSunset, LuTrash2 } from 'react-icons/lu';
-import { COMPANIES } from '../../data/companies.js';
 import { calculateWebinarDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
 import { getGroupSharedFields } from '../../utils/groupEarnings.js';
 
@@ -17,7 +16,7 @@ function rowFromEarning(earning) {
   };
 }
 
-export default function AdminGroupForm({ groupEarnings, onSave, onCancel }) {
+export default function AdminGroupForm({ groupEarnings, companies, onSave, onCancel }) {
   const [reportDate, setReportDate] = useState('');
   const [registrationUrl, setRegistrationUrl] = useState('');
   const [recordingUrl, setRecordingUrl] = useState('');
@@ -35,7 +34,7 @@ export default function AdminGroupForm({ groupEarnings, onSave, onCancel }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupEarnings]);
 
-  const availableCompanies = COMPANIES.filter((c) => !rows.some((r) => r.ticker === c.ticker));
+  const availableCompanies = companies.filter((c) => !rows.some((r) => r.ticker === c.ticker));
 
   function updateRow(id, field, value) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));

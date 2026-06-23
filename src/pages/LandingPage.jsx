@@ -8,7 +8,7 @@ import Footer from '../components/Footer.jsx';
 import { useNewsFeed } from '../hooks/useNewsFeed.js';
 import { getUpcomingTickers } from '../utils/upcomingTickers.js';
 
-export default function LandingPage({ earnings }) {
+export default function LandingPage({ earnings, companies }) {
   const [filter, setFilter] = useState('upcoming');
   const [search, setSearch] = useState('');
   const upcomingTickers = useMemo(() => getUpcomingTickers(earnings), [earnings]);
@@ -23,7 +23,7 @@ export default function LandingPage({ earnings }) {
         {filter === 'news' ? (
           <NewsList status={newsStatus} articles={newsArticles} search={search} onRefresh={refreshNews} />
         ) : (
-          <EarningsList earnings={earnings} filter={filter} search={search} />
+          <EarningsList earnings={earnings} filter={filter} search={search} companies={companies} />
         )}
       </main>
       <div className="mt-auto">

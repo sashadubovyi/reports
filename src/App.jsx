@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import LandingPage from './pages/LandingPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import { useFirestoreEarnings } from './hooks/useFirestoreEarnings.js';
+import { useFirestoreCompanies } from './hooks/useFirestoreCompanies.js';
 import { INITIAL_EARNINGS } from './data/initialEarnings.js';
 
 function getPageFromLocation() {
@@ -12,6 +13,7 @@ function getPageFromLocation() {
 export default function App() {
   const [page, setPage] = useState(getPageFromLocation);
   const [earnings, setEarnings] = useFirestoreEarnings(INITIAL_EARNINGS);
+  const { companies, saveCompany, deleteCompany } = useFirestoreCompanies();
 
   useEffect(() => {
     function handlePopState() {
@@ -39,8 +41,16 @@ export default function App() {
   }, []);
 
   if (page === 'admin') {
-    return <AdminPage earnings={earnings} setEarnings={setEarnings} />;
+    return (
+      <AdminPage
+        earnings={earnings}
+        setEarnings={setEarnings}
+        companies={companies}
+        onSaveCompany={saveCompany}
+        onDeleteCompany={deleteCompany}
+      />
+    );
   }
 
-  return <LandingPage earnings={earnings} />;
+  return <LandingPage earnings={earnings} companies={companies} />;
 }

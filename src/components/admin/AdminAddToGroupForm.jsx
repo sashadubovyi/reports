@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { LuSunrise, LuSunset } from 'react-icons/lu';
-import { COMPANIES } from '../../data/companies.js';
 import { calculateWebinarDate, formatDisplayDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
 import { groupByReportDate, getGroupSharedFields } from '../../utils/groupEarnings.js';
 
-export default function AdminAddToGroupForm({ earnings, onSave, onCancel }) {
+export default function AdminAddToGroupForm({ earnings, companies, onSave, onCancel }) {
   const groups = groupByReportDate(earnings);
   const sortedDates = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
 
@@ -16,7 +15,7 @@ export default function AdminAddToGroupForm({ earnings, onSave, onCancel }) {
   const [revenueEstimate, setRevenueEstimate] = useState('');
 
   const groupEarnings = groups.get(reportDate) || [];
-  const availableCompanies = COMPANIES.filter((c) => !groupEarnings.some((e) => e.ticker === c.ticker));
+  const availableCompanies = companies.filter((c) => !groupEarnings.some((e) => e.ticker === c.ticker));
   const { registrationUrl, recordingUrl, webinarEnded } = getGroupSharedFields(groupEarnings);
   const webinarPreview = reportDate ? calculateWebinarDate(reportDate, marketTiming) : null;
 

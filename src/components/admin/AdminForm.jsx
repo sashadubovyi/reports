@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { LuSunrise, LuSunset } from 'react-icons/lu';
-import { COMPANIES } from '../../data/companies.js';
 import { calculateWebinarDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
 
 const EMPTY_FORM = {
-  ticker: COMPANIES[0].ticker,
+  ticker: '',
   quarter: '',
   reportDate: '',
   marketTiming: 'BMO',
@@ -16,15 +15,16 @@ const EMPTY_FORM = {
   recordingUrl: '',
 };
 
-export default function AdminForm({ editingEarning, onSave, onCancel }) {
-  const [form, setForm] = useState(EMPTY_FORM);
+export default function AdminForm({ editingEarning, companies, onSave, onCancel }) {
+  const [form, setForm] = useState(() => ({ ...EMPTY_FORM, ticker: companies[0]?.ticker || '' }));
 
   useEffect(() => {
     if (editingEarning) {
       setForm({ ...EMPTY_FORM, ...editingEarning });
     } else {
-      setForm(EMPTY_FORM);
+      setForm({ ...EMPTY_FORM, ticker: companies[0]?.ticker || '' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingEarning]);
 
   function update(field, value) {
@@ -51,7 +51,7 @@ export default function AdminForm({ editingEarning, onSave, onCancel }) {
           onChange={(e) => update('ticker', e.target.value)}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
         >
-          {COMPANIES.map((c) => (
+          {companies.map((c) => (
             <option key={c.ticker} value={c.ticker}>
               {c.name} ({c.ticker})
             </option>

@@ -1,0 +1,84 @@
+import { useEffect, useState } from 'react';
+
+const EMPTY_FORM = { ticker: '', name: '', logoUrl: '' };
+
+export default function AdminCompanyForm({ editingCompany, existingTickers, onSave, onCancel }) {
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setForm(editingCompany ? { domain: '', ...editingCompany } : EMPTY_FORM);
+    setError('');
+  }, [editingCompany]);
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const ticker = form.ticker.trim().toUpperCase();
+    if (!ticker || !form.name.trim()) return;
+    if (!editingCompany && existingTickers.includes(ticker)) {
+      setError('Такой тикер уже существует');
+      return;
+    }
+    onSave({ ...form, ticker, name: form.name.trim(), logoUrl: form.logoUrl.trim() });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+      <h3 className="font-bold text-gray-900">{editingCompany ? 'Редактировать компанию' : 'Новая компания'}</h3>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Тикер</label>
+        <input
+          type="text"
+          value={form.ticker}
+          onChange={(e) => update('ticker', e.target.value.toUpperCase())}
+          disabled={Boolean(editingCompany)}
+          placeholder="AAPL"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-400"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Название компании</label>
+        <input
+          type="text"
+          value={form.name}
+          onChange={(e) => update('name', e.target.value)}
+          placeholder="Apple Inc."
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Ссылка на логотип (необязательно)</label>
+        <input
+          type="url"
+          value={form.logoUrl}
+          onChange={(e) => update('logoUrl', e.target.value)}
+          placeholder="https://..."
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+        <p className="text-xs text-gray-400">Если не указано, логотип подбирается автоматически по тикеру/домену.</p>
+      </div>
+
+      {error ? <p className="text-red-600 text-xs">{error}</p> : null}
+
+      <div className="flex space-x-3">
+        <button type="submit" className="flex-1 bg-brand text-white font-semibold rounded-md py-2.5 text-sm">
+          Сохранить
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 bg-gray-100 text-gray-600 font-semibold rounded-md py-2.5 text-sm"
+        >
+          Отмена
+        </button>
+      </div>
+    </form>
+  );
+}

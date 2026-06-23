@@ -1,5 +1,4 @@
 import { LuSunrise, LuSunset } from 'react-icons/lu';
-import { getCompanyByTicker } from '../data/companies.js';
 import { calculateWebinarDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
@@ -11,7 +10,7 @@ function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
   return { text: `${sign}${prefix}${Math.abs(num)}${suffix}`, positive: num >= 0 };
 }
 
-export default function EarningsCard({ reportDate, earnings }) {
+export default function EarningsCard({ reportDate, earnings, companyByTicker }) {
   const upcoming = isUpcoming(reportDate) && !earnings.some((earning) => earning.webinarEnded);
   const webinarDate = earnings
     .map((earning) => calculateWebinarDate(earning.reportDate, earning.marketTiming))
@@ -31,7 +30,7 @@ export default function EarningsCard({ reportDate, earnings }) {
 
       <div className="divide-y divide-gray-100">
         {earnings.map((earning) => {
-          const company = getCompanyByTicker(earning.ticker);
+          const company = companyByTicker.get(earning.ticker);
           const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия рынка' : 'После закрытия рынка';
           const TimingIcon = earning.marketTiming === 'BMO' ? LuSunrise : LuSunset;
           const gapDollar = formatSigned(earning.gapDollar, { prefix: '$' });
@@ -41,7 +40,7 @@ export default function EarningsCard({ reportDate, earnings }) {
             <div key={earning.id} className="px-4 py-3 space-y-2">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-2.5">
-                  <CompanyLogo domain={company?.domain} ticker={earning.ticker} />
+                  <CompanyLogo domain={company?.domain} logoUrl={company?.logoUrl} ticker={earning.ticker} />
                   <div>
                     <p className="text-base font-bold text-gray-900">
                       {company ? company.name : earning.ticker}{' '}

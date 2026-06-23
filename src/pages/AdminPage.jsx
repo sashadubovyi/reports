@@ -4,6 +4,8 @@ import AdminForm from '../components/admin/AdminForm.jsx';
 import AdminGroupForm from '../components/admin/AdminGroupForm.jsx';
 import AdminAddToGroupForm from '../components/admin/AdminAddToGroupForm.jsx';
 import AdminGroupTable from '../components/admin/AdminGroupTable.jsx';
+import AdminCompanyForm from '../components/admin/AdminCompanyForm.jsx';
+import AdminCompanyTable from '../components/admin/AdminCompanyTable.jsx';
 import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAdminAuth } from '../hooks/useAdminAuth.js';
@@ -11,11 +13,14 @@ import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubChec
 import { groupByReportDate } from '../utils/groupEarnings.js';
 
 // 'closed' | 'newCard' | 'addToGroup' | 'editGroup'
-export default function AdminPage({ earnings, setEarnings }) {
+export default function AdminPage({ earnings, setEarnings, companies, onSaveCompany, onDeleteCompany }) {
   const { user, loading, logout } = useAdminAuth();
   const authed = Boolean(user);
+  const [tab, setTab] = useState('cards');
   const [formMode, setFormMode] = useState('closed');
   const [editingGroupEarnings, setEditingGroupEarnings] = useState(null);
+  const [editingCompanyTicker, setEditingCompanyTicker] = useState(null);
+  const [companyFormOpen, setCompanyFormOpen] = useState(false);
   const [lastCheck, setLastCheck] = useLocalStorage('otkritie-finnhub-last-check', null);
   const [discrepancies, setDiscrepancies] = useLocalStorage('otkritie-finnhub-discrepancies', []);
   const [checkStatus, setCheckStatus] = useState(null);
@@ -80,6 +85,21 @@ export default function AdminPage({ earnings, setEarnings }) {
     setEarnings((prev) => prev.filter((e) => e.reportDate !== reportDate));
   }
 
+  function handleEditCompany(ticker) {
+    setEditingCompanyTicker(ticker);
+    setCompanyFormOpen(true);
+  }
+
+  function closeCompanyForm() {
+    setCompanyFormOpen(false);
+    setEditingCompanyTicker(null);
+  }
+
+  function handleSaveCompany(company) {
+    onSaveCompany(company);
+    closeCompanyForm();
+  }
+
   // Replaces the original group's member records (snapshotted in
   // editingGroupEarnings) with the dialog's returned set in one atomic
   // update, so edits, additions, and removals all land together.
@@ -111,47 +131,89 @@ export default function AdminPage({ earnings, setEarnings }) {
         </div>
       </div>
 
-      <main className="space-y-4">
-        <DiscrepancyBanner
-          discrepancies={discrepancies}
-          checkStatus={checkStatus}
-          lastCheck={lastCheck}
-          onApply={handleApplyDiscrepancy}
-          onDismiss={handleDismissDiscrepancy}
-        />
+      <div className="flex border-b border-gray-200 bg-white rounded-t-md overflow-hidden">
+        {[
+          { key: 'cards', label: 'Карточки' },
+          { key: 'companies', label: 'Компании' },
+        ].map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={
+              'flex-1 py-3 text-sm font-semibold border-b-2 ' +
+              (tab === t.key ? 'border-brand text-brand' : 'border-transparent text-gray-500')
+            }
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-        {formMode === 'newCard' ? (
-          <AdminForm editingEarning={null} onSave={handleSaveNewCard} onCancel={closeForm} />
-        ) : formMode === 'addToGroup' ? (
-          <AdminAddToGroupForm earnings={earnings} onSave={handleSaveAddToGroup} onCancel={closeForm} />
-        ) : formMode === 'editGroup' ? (
-          <AdminGroupForm groupEarnings={editingGroupEarnings} onSave={handleSaveGroup} onCancel={closeForm} />
-        ) : (
-          <div className="flex space-x-3">
+      {tab === 'cards' ? (
+        <main className="space-y-4">
+          <DiscrepancyBanner
+            discrepancies={discrepancies}
+            checkStatus={checkStatus}
+            lastCheck={lastCheck}
+            onApply={handleApplyDiscrepancy}
+            onDismiss={handleDismissDiscrepancy}
+          />
+
+          {formMode === 'newCard' ? (
+            <AdminForm editingEarning={null} companies={companies} onSave={handleSaveNewCard} onCancel={closeForm} />
+          ) : formMode === 'addToGroup' ? (
+            <AdminAddToGroupForm earnings={earnings} companies={companies} onSave={handleSaveAddToGroup} onCancel={closeForm} />
+          ) : formMode === 'editGroup' ? (
+            <AdminGroupForm groupEarnings={editingGroupEarnings} companies={companies} onSave={handleSaveGroup} onCancel={closeForm} />
+          ) : (
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={() => setFormMode('newCard')}
+                className="flex-1 bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
+              >
+                + Новая карточка
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormMode('addToGroup')}
+                className="flex-1 bg-gray-100 text-gray-700 font-semibold rounded-md py-2.5 text-sm"
+              >
+                + В существующую группу
+              </button>
+            </div>
+          )}
+
+          <AdminGroupTable
+            earnings={earnings}
+            onEdit={handleEditGroup}
+            onToggleWebinarEnded={handleToggleWebinarEnded}
+            onDeleteGroup={handleDeleteGroup}
+          />
+        </main>
+      ) : (
+        <main className="space-y-4">
+          {companyFormOpen ? (
+            <AdminCompanyForm
+              editingCompany={companies.find((c) => c.ticker === editingCompanyTicker) || null}
+              existingTickers={companies.map((c) => c.ticker)}
+              onSave={handleSaveCompany}
+              onCancel={closeCompanyForm}
+            />
+          ) : (
             <button
               type="button"
-              onClick={() => setFormMode('newCard')}
-              className="flex-1 bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
+              onClick={() => setCompanyFormOpen(true)}
+              className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
             >
-              + Новая карточка
+              + Новая компания
             </button>
-            <button
-              type="button"
-              onClick={() => setFormMode('addToGroup')}
-              className="flex-1 bg-gray-100 text-gray-700 font-semibold rounded-md py-2.5 text-sm"
-            >
-              + В существующую группу
-            </button>
-          </div>
-        )}
+          )}
 
-        <AdminGroupTable
-          earnings={earnings}
-          onEdit={handleEditGroup}
-          onToggleWebinarEnded={handleToggleWebinarEnded}
-          onDeleteGroup={handleDeleteGroup}
-        />
-      </main>
+          <AdminCompanyTable companies={companies} onEdit={handleEditCompany} onDelete={onDeleteCompany} />
+        </main>
+      )}
     </div>
   );
 }
