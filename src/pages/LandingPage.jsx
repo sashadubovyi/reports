@@ -12,7 +12,7 @@ export default function LandingPage({ earnings }) {
   const [filter, setFilter] = useState('upcoming');
   const [search, setSearch] = useState('');
   const upcomingTickers = useMemo(() => getUpcomingTickers(earnings), [earnings]);
-  const { status: newsStatus, articles: newsArticles } = useNewsFeed(filter === 'news', upcomingTickers);
+  const { status: newsStatus, articles: newsArticles, refresh: refreshNews } = useNewsFeed(filter === 'news', upcomingTickers);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -21,7 +21,7 @@ export default function LandingPage({ earnings }) {
       <FilterTabs activeTab={filter} onChange={setFilter} />
       <main>
         {filter === 'news' ? (
-          <NewsList status={newsStatus} articles={newsArticles} search={search} />
+          <NewsList status={newsStatus} articles={newsArticles} search={search} onRefresh={refreshNews} />
         ) : (
           <EarningsList earnings={earnings} filter={filter} search={search} />
         )}

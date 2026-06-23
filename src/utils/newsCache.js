@@ -27,3 +27,12 @@ export function writeNewsCache(articles) {
     // caching is a best-effort optimization, not a correctness requirement.
   }
 }
+
+export function clearNewsCache() {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+  } catch {
+    // best-effort, see writeNewsCache
+  }
+}

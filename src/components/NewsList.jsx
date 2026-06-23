@@ -3,6 +3,7 @@ import NewsCard from './NewsCard.jsx';
 import NewsCardSkeleton from './NewsCardSkeleton.jsx';
 import { extractMatchingCompanies } from '../utils/newsTickerMatch.js';
 import { getCompanyByTicker } from '../data/companies.js';
+import { getRefreshCooldownRemainingMs, isRefreshOnCooldown, startRefreshCooldown } from '../utils/newsRefreshCooldown.js';
 
 const PAGE_SIZE = 25;
 const SKELETON_COUNT = 6;
@@ -21,9 +22,23 @@ function enrichArticle(article) {
   return { article, matchedCompanies: [sourceCompany, ...textMatches] };
 }
 
-export default function NewsList({ status, articles, search = '' }) {
+export default function NewsList({ status, articles, search = '', onRefresh }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [cooldownActive, setCooldownActive] = useState(() => isRefreshOnCooldown());
   const query = search.trim().toLowerCase();
+
+  // The cooldown timestamp lives in localStorage (survives reload/tab switch),
+  // but this timer flips the link back on live if the tab stays open past it.
+  useEffect(() => {
+    if (!cooldownActive) return;
+    const remaining = getRefreshCooldownRemainingMs();
+    if (remaining <= 0) {
+      setCooldownActive(false);
+      return;
+    }
+    const timer = setTimeout(() => setCooldownActive(false), remaining);
+    return () => clearTimeout(timer);
+  }, [cooldownActive]);
 
   const enriched = useMemo(() => articles.map(enrichArticle), [articles]);
 
@@ -41,6 +56,20 @@ export default function NewsList({ status, articles, search = '' }) {
     setVisibleCount(PAGE_SIZE);
   }, [query]);
 
+  function handleRefreshClick() {
+    startRefreshCooldown();
+    setCooldownActive(true);
+    onRefresh();
+  }
+
+  const canRefresh = status === 'loaded' || status === 'refreshing' || status === 'error';
+  const refreshRow =
+    canRefresh && !cooldownActive ? (
+      <button type="button" onClick={handleRefreshClick} className="text-xs text-gray-400 hover:text-gray-600 hover:underline">
+        Обновить новости
+      </button>
+    ) : null;
+
   if (status === 'idle' || status === 'loading') {
     return (
       <div className="px-4 py-4 space-y-3">
@@ -52,14 +81,22 @@ export default function NewsList({ status, articles, search = '' }) {
   }
 
   if (status === 'error') {
-    return <p className="text-center text-red-600 text-sm py-10">Не удалось загрузить новости. Попробуйте позже.</p>;
+    return (
+      <div className="px-4 py-4 space-y-3">
+        {refreshRow}
+        <p className="text-center text-red-600 text-sm py-10">Не удалось загрузить новости. Попробуйте позже.</p>
+      </div>
+    );
   }
 
   if (filtered.length === 0) {
     return (
-      <p className="text-center text-gray-500 text-sm py-10">
-        {query ? 'Новости по запросу не найдены' : 'Новостей пока нет'}
-      </p>
+      <div className="px-4 py-4 space-y-3">
+        {refreshRow}
+        <p className="text-center text-gray-500 text-sm py-10">
+          {query ? 'Новости по запросу не найдены' : 'Новостей пока нет'}
+        </p>
+      </div>
     );
   }
 
@@ -68,6 +105,8 @@ export default function NewsList({ status, articles, search = '' }) {
 
   return (
     <div className="px-4 py-4 space-y-3">
+      {refreshRow}
+      {status === 'refreshing' ? <p className="text-xs text-gray-400">Обновление…</p> : null}
       {visible.map(({ article, matchedCompanies }) => (
         <NewsCard key={article.id} article={article} matchedCompanies={matchedCompanies} />
       ))}

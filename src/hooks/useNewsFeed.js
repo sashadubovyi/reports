@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchMarketNews } from '../utils/newsApi.js';
-import { readNewsCache, writeNewsCache } from '../utils/newsCache.js';
+import { clearNewsCache, readNewsCache, writeNewsCache } from '../utils/newsCache.js';
 
 // Owned by the page (not the News tab component) so the fetched articles
 // survive switching tabs away and back — the tab itself can unmount freely
@@ -32,5 +32,23 @@ export function useNewsFeed(shouldLoad, tickers) {
       });
   }, [shouldLoad, status, tickers]);
 
-  return { status, articles };
+  // Manual override for the "Обновить новости" link — bypasses the cache
+  // entirely. Distinct 'refreshing' status (vs 'loading') so the feed can
+  // keep showing the stale articles underneath instead of blanking to skeletons.
+  const refresh = useCallback(() => {
+    clearNewsCache();
+    setStatus('refreshing');
+    fetchMarketNews(tickers)
+      .then((items) => {
+        setArticles(items);
+        writeNewsCache(items);
+        setStatus('loaded');
+      })
+      .catch((err) => {
+        console.error('Не удалось обновить новости:', err);
+        setStatus('loaded');
+      });
+  }, [tickers]);
+
+  return { status, articles, refresh };
 }
