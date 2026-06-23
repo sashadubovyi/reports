@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 
-const EMPTY_FORM = { ticker: '', name: '', logoUrl: '', reportDate: '', epsEstimate: '', revenueEstimate: '' };
+const EMPTY_FORM = {
+  ticker: '',
+  name: '',
+  logoUrl: '',
+  reportDate: '',
+  marketTime: 'BMO',
+  epsEstimate: '',
+  revenueEstimate: '',
+};
 
 export default function AdminCompanyForm({ editingCompany, existingTickers, activeEarning, onSave, onCancel }) {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -14,6 +22,7 @@ export default function AdminCompanyForm({ editingCompany, existingTickers, acti
             domain: '',
             ...editingCompany,
             reportDate: activeEarning?.reportDate || '',
+            marketTime: activeEarning?.marketTiming || 'BMO',
             epsEstimate: activeEarning?.epsEstimate || '',
             revenueEstimate: activeEarning?.revenueEstimate || '',
           }
@@ -43,6 +52,7 @@ export default function AdminCompanyForm({ editingCompany, existingTickers, acti
       name: form.name.trim(),
       logoUrl: form.logoUrl.trim(),
       reportDate: form.reportDate,
+      marketTime: form.marketTime,
       epsEstimate: form.epsEstimate.trim(),
       revenueEstimate: form.revenueEstimate.trim(),
     });
@@ -97,6 +107,33 @@ export default function AdminCompanyForm({ editingCompany, existingTickers, acti
         />
         <p className="text-xs text-gray-400">
           Изменение даты автоматически переносит компанию в карточку другой группы (или создаёт новую).
+        </p>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Время отчёта</label>
+        <div className="flex space-x-4 text-sm">
+          <label className="flex items-center space-x-1">
+            <input
+              type="radio"
+              name="marketTime"
+              checked={form.marketTime === 'BMO'}
+              onChange={() => update('marketTime', 'BMO')}
+            />
+            <span>До открытия рынка (BMO)</span>
+          </label>
+          <label className="flex items-center space-x-1">
+            <input
+              type="radio"
+              name="marketTime"
+              checked={form.marketTime === 'AMC'}
+              onChange={() => update('marketTime', 'AMC')}
+            />
+            <span>После закрытия рынка (AMC)</span>
+          </label>
+        </div>
+        <p className="text-xs text-gray-400">
+          AMC автоматически переносит карточку на следующий рабочий день (с понедельника после пятницы).
         </p>
       </div>
 

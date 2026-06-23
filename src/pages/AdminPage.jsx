@@ -11,7 +11,7 @@ import Modal from '../components/Modal.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAdminAuth } from '../hooks/useAdminAuth.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
-import { deriveQuarterLabel } from '../utils/dateUtils.js';
+import { calculateWebinarDate, deriveQuarterLabel } from '../utils/dateUtils.js';
 import { findActiveEarning, getGroupSharedFields, groupByReportDate } from '../utils/groupEarnings.js';
 
 // 'closed' | 'newCard' | 'addToGroup' | 'editGroup'
@@ -103,10 +103,13 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   // Moves a ticker's active (upcoming, not-ended) card to match the date set
   // in the Companies tab: updates EPS/revenue in place if the date didn't
   // change, otherwise joins (or creates) the webinar group for the new date.
+  // AMC reports push the group to the next trading day (same rule as the
+  // webinar-date calculation), so the group key is the calculated webinar
+  // date, not the raw selected calendar date.
   // Groups have no document of their own — they're just earnings rows that
   // share a reportDate — so leaving the old date naturally empties the old
   // group with no separate delete needed.
-  function migrateCompanyEarning(ticker, previousEarning, newDate, epsEstimate, revenueEstimate) {
+  function migrateCompanyEarning(ticker, previousEarning, newDate, marketTime, epsEstimate, revenueEstimate) {
     if (!newDate) {
       if (previousEarning) {
         setEarnings((prev) => prev.filter((e) => e.id !== previousEarning.id));
@@ -114,22 +117,26 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
       return;
     }
 
-    if (previousEarning && previousEarning.reportDate === newDate) {
+    const targetDate = calculateWebinarDate(newDate, marketTime);
+
+    if (previousEarning && previousEarning.reportDate === targetDate) {
       setEarnings((prev) =>
-        prev.map((e) => (e.id === previousEarning.id ? { ...e, epsEstimate, revenueEstimate } : e)),
+        prev.map((e) =>
+          e.id === previousEarning.id ? { ...e, marketTiming: marketTime, epsEstimate, revenueEstimate } : e,
+        ),
       );
       return;
     }
 
     setEarnings((prev) => {
-      const destinationGroup = prev.filter((e) => e.reportDate === newDate && e.id !== previousEarning?.id);
+      const destinationGroup = prev.filter((e) => e.reportDate === targetDate && e.id !== previousEarning?.id);
       const shared = getGroupSharedFields(destinationGroup);
       const movedEntry = {
         id: previousEarning?.id || `e-${Date.now()}`,
         ticker,
-        quarter: deriveQuarterLabel(newDate),
-        reportDate: newDate,
-        marketTiming: previousEarning?.marketTiming || 'BMO',
+        quarter: deriveQuarterLabel(targetDate),
+        reportDate: targetDate,
+        marketTiming: marketTime,
         epsEstimate,
         revenueEstimate,
         gapDollar: '',
@@ -145,9 +152,9 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   }
 
   function handleSaveCompany(formResult) {
-    const { reportDate, epsEstimate, revenueEstimate, ...company } = formResult;
+    const { reportDate, marketTime, epsEstimate, revenueEstimate, ...company } = formResult;
     onSaveCompany(company);
-    migrateCompanyEarning(company.ticker, editingCompanyEarning, reportDate, epsEstimate, revenueEstimate);
+    migrateCompanyEarning(company.ticker, editingCompanyEarning, reportDate, marketTime, epsEstimate, revenueEstimate);
     closeCompanyForm();
   }
 
