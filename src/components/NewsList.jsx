@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import NewsCard from './NewsCard.jsx';
+import NewsCardSkeleton from './NewsCardSkeleton.jsx';
 import { extractMatchingCompanies } from '../utils/newsTickerMatch.js';
 
 const PAGE_SIZE = 25;
+const SKELETON_COUNT = 6;
 
 export default function NewsList({ status, articles, search = '' }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -34,7 +36,13 @@ export default function NewsList({ status, articles, search = '' }) {
   }, [query]);
 
   if (status === 'idle' || status === 'loading') {
-    return <p className="text-center text-gray-500 text-sm py-10">Загрузка новостей…</p>;
+    return (
+      <div className="px-4 py-4 space-y-3">
+        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          <NewsCardSkeleton key={i} />
+        ))}
+      </div>
+    );
   }
 
   if (status === 'error') {

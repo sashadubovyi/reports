@@ -1,4 +1,5 @@
 const FINNHUB_NEWS_URL = 'https://finnhub.io/api/v1/news';
+const MAX_ARTICLES = 100;
 
 export async function fetchMarketNews() {
   const apiKey = import.meta.env.VITE_FINNHUB_API_KEY;
@@ -13,5 +14,6 @@ export async function fetchMarketNews() {
   }
 
   const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  const items = Array.isArray(data) ? data : [];
+  return items.slice(0, MAX_ARTICLES);
 }
