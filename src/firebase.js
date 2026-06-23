@@ -1,5 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { isSupported, getAnalytics } from 'firebase/analytics';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCD-GRWCyu3J5EL4ew4aiSsd4dBiAFxdLg',
@@ -12,6 +14,15 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+// Lets local dev point at `firebase emulators:start` instead of live data,
+// without touching production behavior (the env var defaults to unset).
+if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+}
 
 // Analytics relies on IndexedDB/fetch that old Android WebViews may lack;
 // isSupported() avoids crashing the whole app on those devices.

@@ -1,18 +1,23 @@
 import { useState } from 'react';
+import { useAdminAuth } from '../../hooks/useAdminAuth.js';
 
-const ADMIN_PASSWORD = 'Qa12345678';
-
-export default function AdminLogin({ onSuccess }) {
+export default function AdminLogin() {
+  const { login } = useAdminAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setError('');
-      onSuccess();
-    } else {
-      setError('Неверный пароль');
+    setError('');
+    setSubmitting(true);
+    try {
+      await login(email, password);
+    } catch {
+      setError('Неверный email или пароль');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -21,16 +26,27 @@ export default function AdminLogin({ onSuccess }) {
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 w-full max-w-sm space-y-4">
         <h2 className="text-lg font-bold text-gray-900">Вход в админ-панель</h2>
         <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+          autoFocus
+        />
+        <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Пароль"
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-          autoFocus
         />
         {error ? <p className="text-red-600 text-xs">{error}</p> : null}
-        <button type="submit" className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm">
-          Войти
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm disabled:opacity-50"
+        >
+          {submitting ? 'Вход...' : 'Войти'}
         </button>
         <a href="?" className="block text-center text-xs text-gray-500">
           Назад на главную

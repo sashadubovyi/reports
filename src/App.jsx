@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import LandingPage from './pages/LandingPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
-import { useLocalStorage } from './hooks/useLocalStorage.js';
+import { useFirestoreEarnings } from './hooks/useFirestoreEarnings.js';
 import { INITIAL_EARNINGS } from './data/initialEarnings.js';
 
 function getPageFromLocation() {
@@ -11,7 +11,7 @@ function getPageFromLocation() {
 
 export default function App() {
   const [page, setPage] = useState(getPageFromLocation);
-  const [earnings, setEarnings] = useLocalStorage('otkritie-earnings', INITIAL_EARNINGS);
+  const [earnings, setEarnings] = useFirestoreEarnings(INITIAL_EARNINGS);
 
   useEffect(() => {
     function handlePopState() {

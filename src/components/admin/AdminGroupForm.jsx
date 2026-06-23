@@ -10,10 +10,10 @@ function rowFromEarning(earning) {
     ticker: earning.ticker,
     quarter: earning.quarter,
     marketTiming: earning.marketTiming,
-    epsEstimate: earning.epsEstimate,
-    revenueEstimate: earning.revenueEstimate,
-    gapDollar: earning.gapDollar,
-    gapPercent: earning.gapPercent,
+    epsEstimate: earning.epsEstimate ?? '',
+    revenueEstimate: earning.revenueEstimate ?? '',
+    gapDollar: earning.gapDollar ?? '',
+    gapPercent: earning.gapPercent ?? '',
   };
 }
 
