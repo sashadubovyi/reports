@@ -7,6 +7,7 @@ import AdminGroupTable from '../components/admin/AdminGroupTable.jsx';
 import AdminCompanyForm from '../components/admin/AdminCompanyForm.jsx';
 import AdminCompanyTable from '../components/admin/AdminCompanyTable.jsx';
 import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
+import Modal from '../components/Modal.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAdminAuth } from '../hooks/useAdminAuth.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
@@ -164,8 +165,6 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
             <AdminForm editingEarning={null} companies={companies} onSave={handleSaveNewCard} onCancel={closeForm} />
           ) : formMode === 'addToGroup' ? (
             <AdminAddToGroupForm earnings={earnings} companies={companies} onSave={handleSaveAddToGroup} onCancel={closeForm} />
-          ) : formMode === 'editGroup' ? (
-            <AdminGroupForm groupEarnings={editingGroupEarnings} companies={companies} onSave={handleSaveGroup} onCancel={closeForm} />
           ) : (
             <div className="flex space-x-3">
               <button
@@ -185,6 +184,10 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
             </div>
           )}
 
+          <Modal open={formMode === 'editGroup'} onClose={closeForm}>
+            <AdminGroupForm groupEarnings={editingGroupEarnings} companies={companies} onSave={handleSaveGroup} onCancel={closeForm} />
+          </Modal>
+
           <AdminGroupTable
             earnings={earnings}
             onEdit={handleEditGroup}
@@ -194,9 +197,9 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
         </main>
       ) : (
         <main className="space-y-4">
-          {companyFormOpen ? (
+          {companyFormOpen && !editingCompanyTicker ? (
             <AdminCompanyForm
-              editingCompany={companies.find((c) => c.ticker === editingCompanyTicker) || null}
+              editingCompany={null}
               existingTickers={companies.map((c) => c.ticker)}
               onSave={handleSaveCompany}
               onCancel={closeCompanyForm}
@@ -210,6 +213,15 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
               + Новая компания
             </button>
           )}
+
+          <Modal open={companyFormOpen && Boolean(editingCompanyTicker)} onClose={closeCompanyForm}>
+            <AdminCompanyForm
+              editingCompany={companies.find((c) => c.ticker === editingCompanyTicker) || null}
+              existingTickers={companies.map((c) => c.ticker)}
+              onSave={handleSaveCompany}
+              onCancel={closeCompanyForm}
+            />
+          </Modal>
 
           <AdminCompanyTable companies={companies} onEdit={handleEditCompany} onDelete={onDeleteCompany} />
         </main>

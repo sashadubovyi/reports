@@ -83,7 +83,7 @@ export default function AdminGroupForm({ groupEarnings, companies, onSave, onCan
     : null;
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+    <form onSubmit={handleSubmit} className="p-4 pr-10 space-y-4">
       <h3 className="font-bold text-gray-900">Редактировать группу вебинара</h3>
 
       <div className="space-y-1">
