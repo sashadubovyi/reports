@@ -11,7 +11,13 @@ export default function Footer() {
           </p>
         </div>
         <a href="?page=admin" className="inline-block flex-shrink-0">
-          <img src="/broker.svg" alt="Admin" className="h-6 w-auto opacity-70 hover:opacity-100 transition-opacity" />
+          <img
+            src="/broker.svg"
+            alt="Admin"
+            width="72"
+            height="24"
+            className="h-6 w-auto opacity-70 hover:opacity-100 transition-opacity"
+          />
         </a>
       </div>
     </footer>

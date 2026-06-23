@@ -25,6 +25,8 @@ export default function CompanyLogo({ domain, ticker }) {
       key={sources[index]}
       src={sources[index]}
       alt=""
+      width="32"
+      height="32"
       className="w-8 h-8 rounded object-contain flex-shrink-0"
       onError={() => setIndex((i) => i + 1)}
     />
