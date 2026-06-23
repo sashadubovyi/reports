@@ -1,16 +1,7 @@
 import EarningsCard from './EarningsCard.jsx';
 import { getCompanyByTicker } from '../data/companies.js';
 import { isUpcoming } from '../utils/dateUtils.js';
-
-function groupByReportDate(earnings) {
-  const groups = new Map();
-  earnings.forEach((earning) => {
-    const list = groups.get(earning.reportDate) || [];
-    list.push(earning);
-    groups.set(earning.reportDate, list);
-  });
-  return groups;
-}
+import { groupByReportDate } from '../utils/groupEarnings.js';
 
 function matchesSearch(earning, query) {
   if (!query) return true;
