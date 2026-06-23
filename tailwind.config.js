@@ -7,7 +7,12 @@ export default {
         brand: {
           DEFAULT: '#0a3d62',
           dark: '#062b46',
-          accent: '#e58e26',
+          accent: {
+            DEFAULT: '#e58e26',
+            // Darker shade for white text on top of it (the base accent
+            // fails WCAG AA contrast at 2.55:1; this hits 4.93:1).
+            dark: '#a26113',
+          },
         },
       },
     },

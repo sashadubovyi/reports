@@ -42,7 +42,7 @@ export default function EarningsCard({ reportDate, earnings }) {
                   <div>
                     <p className="text-base font-bold text-gray-900">
                       {company ? company.name : earning.ticker}{' '}
-                      <span className="text-gray-400 font-normal">({earning.ticker})</span>
+                      <span className="text-gray-500 font-normal">({earning.ticker})</span>
                     </p>
                     <p className="text-xs text-gray-500">
                       {earning.quarter} · {timingLabel}
@@ -50,6 +50,7 @@ export default function EarningsCard({ reportDate, earnings }) {
                   </div>
                 </div>
                 <span
+                  role="img"
                   className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
                   title={timingLabel}
                   aria-label={timingLabel}
@@ -60,18 +61,18 @@ export default function EarningsCard({ reportDate, earnings }) {
 
               <div className="flex text-sm">
                 <div className="flex-1 space-y-1">
-                  <p className="text-gray-400 text-xs">EPS (прогноз)</p>
+                  <p className="text-gray-500 text-xs">EPS (прогноз)</p>
                   <p className="font-semibold text-gray-800">{earning.epsEstimate || '—'}</p>
                 </div>
                 <div className="flex-1 space-y-1">
-                  <p className="text-gray-400 text-xs">Выручка (прогноз)</p>
+                  <p className="text-gray-500 text-xs">Выручка (прогноз)</p>
                   <p className="font-semibold text-gray-800">{earning.revenueEstimate || '—'}</p>
                 </div>
               </div>
 
               {!upcoming && gap ? (
                 <div className="flex items-center gap-1.5 text-sm">
-                  <span className="text-gray-400 text-xs">Гэп на открытии:</span>
+                  <span className="text-gray-500 text-xs">Гэп на открытии:</span>
                   <span className={`font-semibold ${gap.positive ? 'text-green-600' : 'text-red-600'}`}>
                     {gapDollar ? gapDollar.text : ''}
                     {gapDollar && gapPercent ? ' ' : ''}
@@ -86,7 +87,7 @@ export default function EarningsCard({ reportDate, earnings }) {
 
       <div className="border-t border-gray-100 px-4 py-3 space-y-2">
         <p className="text-sm text-gray-600">
-          <span className="text-gray-400">Дата вебинара: </span>
+          <span className="text-gray-500">Дата вебинара: </span>
           {formatDisplayDate(webinarDate)}
         </p>
         {upcoming ? (
@@ -95,7 +96,7 @@ export default function EarningsCard({ reportDate, earnings }) {
               href={registrationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-center bg-brand-accent text-white font-semibold rounded-md py-2.5 text-sm"
+              className="block text-center bg-brand-accent-dark text-white font-semibold rounded-md py-2.5 text-sm"
             >
               Зарегистрироваться на вебинар
             </a>

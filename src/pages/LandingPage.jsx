@@ -11,7 +11,9 @@ export default function LandingPage({ earnings }) {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
       <FilterTabs activeTab={filter} onChange={setFilter} />
-      <EarningsList earnings={earnings} filter={filter} />
+      <main>
+        <EarningsList earnings={earnings} filter={filter} />
+      </main>
       <div className="mt-auto">
         <Footer />
       </div>

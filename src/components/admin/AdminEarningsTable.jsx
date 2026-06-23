@@ -6,7 +6,7 @@ export default function AdminEarningsTable({ earnings, onEdit, onDelete }) {
   const sorted = [...earnings].sort((a, b) => b.reportDate.localeCompare(a.reportDate));
 
   if (sorted.length === 0) {
-    return <p className="text-sm text-gray-400">Карточек пока нет</p>;
+    return <p className="text-sm text-gray-500">Карточек пока нет</p>;
   }
 
   return (
@@ -39,7 +39,7 @@ export default function AdminEarningsTable({ earnings, onEdit, onDelete }) {
               <button
                 type="button"
                 onClick={() => onDelete(earning.id)}
-                className="text-xs font-semibold text-red-500 px-2 py-1"
+                className="text-xs font-semibold text-red-600 px-2 py-1"
               >
                 Удалить
               </button>

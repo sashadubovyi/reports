@@ -18,7 +18,7 @@ export default function EarningsList({ earnings, filter }) {
 
   if (filtered.length === 0) {
     return (
-      <p className="text-center text-gray-400 text-sm py-10">
+      <p className="text-center text-gray-500 text-sm py-10">
         {filter === 'upcoming' ? 'Нет предстоящих отчётностей' : 'Нет прошедших отчётностей'}
       </p>
     );

@@ -17,7 +17,7 @@ export default function AdminLogin({ onSuccess }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 w-full max-w-sm space-y-4">
         <h2 className="text-lg font-bold text-gray-900">Вход в админ-панель</h2>
         <input
@@ -28,14 +28,14 @@ export default function AdminLogin({ onSuccess }) {
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           autoFocus
         />
-        {error ? <p className="text-red-500 text-xs">{error}</p> : null}
+        {error ? <p className="text-red-600 text-xs">{error}</p> : null}
         <button type="submit" className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm">
           Войти
         </button>
-        <a href="?" className="block text-center text-xs text-gray-400">
+        <a href="?" className="block text-center text-xs text-gray-500">
           Назад на главную
         </a>
       </form>
-    </div>
+    </main>
   );
 }

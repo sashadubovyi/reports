@@ -78,39 +78,41 @@ export default function AdminPage({ earnings, setEarnings }) {
     <div className="min-h-screen bg-gray-50 px-4 py-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-gray-900">Админ-панель</h1>
-        <a href="?" className="text-xs text-gray-400">
+        <a href="?" className="text-xs text-gray-500">
           На главную
         </a>
       </div>
 
-      <DiscrepancyBanner
-        discrepancies={discrepancies}
-        checkStatus={checkStatus}
-        lastCheck={lastCheck}
-        onApply={handleApplyDiscrepancy}
-        onDismiss={handleDismissDiscrepancy}
-      />
-
-      {showForm ? (
-        <AdminForm
-          editingEarning={editingEarning}
-          onSave={handleSave}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingEarning(null);
-          }}
+      <main className="space-y-4">
+        <DiscrepancyBanner
+          discrepancies={discrepancies}
+          checkStatus={checkStatus}
+          lastCheck={lastCheck}
+          onApply={handleApplyDiscrepancy}
+          onDismiss={handleDismissDiscrepancy}
         />
-      ) : (
-        <button
-          type="button"
-          onClick={handleAddNew}
-          className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
-        >
-          + Добавить карточку
-        </button>
-      )}
 
-      <AdminEarningsTable earnings={earnings} onEdit={handleEdit} onDelete={handleDelete} />
+        {showForm ? (
+          <AdminForm
+            editingEarning={editingEarning}
+            onSave={handleSave}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingEarning(null);
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={handleAddNew}
+            className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
+          >
+            + Добавить карточку
+          </button>
+        )}
+
+        <AdminEarningsTable earnings={earnings} onEdit={handleEdit} onDelete={handleDelete} />
+      </main>
     </div>
   );
 }

@@ -7,10 +7,10 @@ export default function DiscrepancyBanner({ discrepancies, checkStatus, lastChec
 
   return (
     <div className="space-y-2">
-      {checkStatus === 'checking' ? <p className="text-xs text-gray-400">Проверка данных через Finnhub…</p> : null}
+      {checkStatus === 'checking' ? <p className="text-xs text-gray-500">Проверка данных через Finnhub…</p> : null}
 
       {checkStatus === 'error' ? (
-        <p className="text-xs text-red-500">Не удалось проверить данные через Finnhub (см. консоль браузера).</p>
+        <p className="text-xs text-red-600">Не удалось проверить данные через Finnhub (см. консоль браузера).</p>
       ) : null}
 
       {discrepancies.length > 0 ? (
@@ -23,9 +23,9 @@ export default function DiscrepancyBanner({ discrepancies, checkStatus, lastChec
             >
               <div className="min-w-0">
                 <span className="font-semibold">{d.ticker}</span>
-                <span className="text-gray-400"> · {d.label}: </span>
-                <span className="text-gray-400 line-through">{d.oldValue}</span>
-                <span className="text-gray-400"> → </span>
+                <span className="text-gray-500"> · {d.label}: </span>
+                <span className="text-gray-500 line-through">{d.oldValue}</span>
+                <span className="text-gray-500"> → </span>
                 <span className="font-semibold text-amber-700">{d.newValue}</span>
               </div>
               <div className="flex gap-2 flex-shrink-0">
@@ -39,7 +39,7 @@ export default function DiscrepancyBanner({ discrepancies, checkStatus, lastChec
                 <button
                   type="button"
                   onClick={() => onDismiss(d)}
-                  className="text-xs text-gray-400 px-2 py-1"
+                  className="text-xs text-gray-500 px-2 py-1"
                 >
                   Игнорировать
                 </button>
@@ -48,7 +48,7 @@ export default function DiscrepancyBanner({ discrepancies, checkStatus, lastChec
           ))}
         </div>
       ) : checkStatus === 'ok' && lastCheckLabel ? (
-        <p className="text-xs text-gray-400">Проверено через Finnhub: {lastCheckLabel} — расхождений не найдено</p>
+        <p className="text-xs text-gray-500">Проверено через Finnhub: {lastCheckLabel} — расхождений не найдено</p>
       ) : null}
     </div>
   );
