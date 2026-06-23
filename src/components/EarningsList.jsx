@@ -1,4 +1,5 @@
 import EarningsCard from './EarningsCard.jsx';
+import { getCompanyByTicker } from '../data/companies.js';
 import { isUpcoming } from '../utils/dateUtils.js';
 
 function groupByReportDate(earnings) {
@@ -11,15 +12,27 @@ function groupByReportDate(earnings) {
   return groups;
 }
 
-export default function EarningsList({ earnings, filter }) {
-  const filtered = earnings.filter((e) =>
-    filter === 'upcoming' ? isUpcoming(e.reportDate) : !isUpcoming(e.reportDate)
+function matchesSearch(earning, query) {
+  if (!query) return true;
+  if (earning.ticker.toLowerCase().includes(query)) return true;
+  const company = getCompanyByTicker(earning.ticker);
+  return company ? company.name.toLowerCase().includes(query) : false;
+}
+
+export default function EarningsList({ earnings, filter, search = '' }) {
+  const query = search.trim().toLowerCase();
+  const filtered = earnings.filter(
+    (e) => (filter === 'upcoming' ? isUpcoming(e.reportDate) : !isUpcoming(e.reportDate)) && matchesSearch(e, query),
   );
 
   if (filtered.length === 0) {
     return (
       <p className="text-center text-gray-500 text-sm py-10">
-        {filter === 'upcoming' ? 'Нет предстоящих отчётностей' : 'Нет прошедших отчётностей'}
+        {query
+          ? 'Ничего не найдено'
+          : filter === 'upcoming'
+            ? 'Нет предстоящих отчётностей'
+            : 'Нет прошедших отчётностей'}
       </p>
     );
   }

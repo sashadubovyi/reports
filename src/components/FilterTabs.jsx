@@ -2,6 +2,7 @@ export default function FilterTabs({ activeTab, onChange }) {
   const tabs = [
     { key: 'upcoming', label: 'Предстоящие' },
     { key: 'past', label: 'Прошедшие' },
+    { key: 'news', label: 'Новости' },
   ];
 
   return (
