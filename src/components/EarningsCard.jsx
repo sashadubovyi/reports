@@ -1,6 +1,6 @@
 import { LuSunrise, LuSunset } from 'react-icons/lu';
 import { getCompanyByTicker } from '../data/companies.js';
-import { calculateWebinarDate, formatGroupDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
+import { calculateWebinarDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
@@ -23,7 +23,10 @@ export default function EarningsCard({ reportDate, earnings }) {
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
       <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
-        <h2 className="text-sm font-bold text-brand">{formatGroupDate(reportDate)}</h2>
+        <h2 className="text-sm font-bold text-brand">
+          <span className="text-gray-500 font-normal">Дата вебинара: </span>
+          {formatWebinarDateTime(webinarDate)}
+        </h2>
       </div>
 
       <div className="divide-y divide-gray-100">
@@ -85,23 +88,19 @@ export default function EarningsCard({ reportDate, earnings }) {
         })}
       </div>
 
-      <div className="border-t border-gray-100 px-4 py-3 space-y-2">
-        <p className="text-sm text-gray-600">
-          <span className="text-gray-500">Дата вебинара: </span>
-          {formatWebinarDateTime(webinarDate)}
-        </p>
-        {upcoming ? (
-          registrationUrl ? (
-            <a
-              href={registrationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center bg-brand-accent-dark text-white font-semibold rounded-md py-2.5 text-sm"
-            >
-              Зарегистрироваться на вебинар
-            </a>
-          ) : null
-        ) : recordingUrl ? (
+      {upcoming && registrationUrl ? (
+        <div className="border-t border-gray-100 px-4 py-3">
+          <a
+            href={registrationUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-center bg-brand-accent-dark text-white font-semibold rounded-md py-2.5 text-sm"
+          >
+            Зарегистрироваться на вебинар
+          </a>
+        </div>
+      ) : !upcoming && recordingUrl ? (
+        <div className="border-t border-gray-100 px-4 py-3">
           <a
             href={recordingUrl}
             target="_blank"
@@ -110,8 +109,8 @@ export default function EarningsCard({ reportDate, earnings }) {
           >
             Смотреть видеозапись
           </a>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
