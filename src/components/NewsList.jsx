@@ -2,25 +2,30 @@ import { useEffect, useMemo, useState } from 'react';
 import NewsCard from './NewsCard.jsx';
 import NewsCardSkeleton from './NewsCardSkeleton.jsx';
 import { extractMatchingCompanies } from '../utils/newsTickerMatch.js';
+import { getCompanyByTicker } from '../data/companies.js';
 
 const PAGE_SIZE = 25;
 const SKELETON_COUNT = 6;
+
+// Ticker-matching scans every article against the full company list, so
+// it's memoized on the article array (stable once fetched) instead of
+// re-running on every render the "Загрузить ещё" button triggers.
+function enrichArticle(article) {
+  const textMatches = extractMatchingCompanies(`${article.headline} ${article.summary || ''}`);
+  // company-news is fetched per ticker, so the source ticker is always a
+  // confirmed match even if the headline phrases the company name oddly.
+  const sourceCompany = article.relatedTicker ? getCompanyByTicker(article.relatedTicker) : null;
+  if (!sourceCompany || textMatches.some((c) => c.ticker === sourceCompany.ticker)) {
+    return { article, matchedCompanies: textMatches };
+  }
+  return { article, matchedCompanies: [sourceCompany, ...textMatches] };
+}
 
 export default function NewsList({ status, articles, search = '' }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const query = search.trim().toLowerCase();
 
-  // Ticker-matching scans every article against the full company list, so
-  // it's memoized on the article array (stable once fetched) instead of
-  // re-running on every render the "Загрузить ещё" button triggers.
-  const enriched = useMemo(
-    () =>
-      articles.map((article) => ({
-        article,
-        matchedCompanies: extractMatchingCompanies(`${article.headline} ${article.summary || ''}`),
-      })),
-    [articles],
-  );
+  const enriched = useMemo(() => articles.map(enrichArticle), [articles]);
 
   const filtered = useMemo(() => {
     const tracked = enriched.filter(({ matchedCompanies }) => matchedCompanies.length > 0);

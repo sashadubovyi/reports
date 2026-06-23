@@ -5,7 +5,7 @@ import { readNewsCache, writeNewsCache } from '../utils/newsCache.js';
 // Owned by the page (not the News tab component) so the fetched articles
 // survive switching tabs away and back — the tab itself can unmount freely
 // without triggering a refetch against the rate-limited Finnhub API.
-export function useNewsFeed(shouldLoad) {
+export function useNewsFeed(shouldLoad, tickers) {
   const [status, setStatus] = useState('idle');
   const [articles, setArticles] = useState([]);
 
@@ -20,7 +20,7 @@ export function useNewsFeed(shouldLoad) {
     }
 
     setStatus('loading');
-    fetchMarketNews()
+    fetchMarketNews(tickers)
       .then((items) => {
         setArticles(items);
         writeNewsCache(items);
@@ -30,7 +30,7 @@ export function useNewsFeed(shouldLoad) {
         console.error('Не удалось загрузить новости:', err);
         setStatus('error');
       });
-  }, [shouldLoad, status]);
+  }, [shouldLoad, status, tickers]);
 
   return { status, articles };
 }
