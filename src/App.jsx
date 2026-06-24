@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import LandingPage from './pages/LandingPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import Q1ReportPage from './pages/Q1ReportPage.jsx';
 import { useFirestoreEarnings } from './hooks/useFirestoreEarnings.js';
 import { useFirestoreCompanies } from './hooks/useFirestoreCompanies.js';
 import { INITIAL_EARNINGS } from './data/initialEarnings.js';
 
+// /q1report is a direct-URL-only archive route, deliberately not reachable
+// from any nav link or button in the live app (see Q1ReportPage.jsx).
 function getPageFromLocation() {
+  if (window.location.pathname === '/q1report') return 'q1report';
   const params = new URLSearchParams(window.location.search);
   return params.get('page') === 'admin' ? 'admin' : 'landing';
 }
@@ -39,6 +43,10 @@ export default function App() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
+
+  if (page === 'q1report') {
+    return <Q1ReportPage />;
+  }
 
   if (page === 'admin') {
     return (

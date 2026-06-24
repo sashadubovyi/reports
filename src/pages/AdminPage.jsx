@@ -10,6 +10,7 @@ import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
 import Modal from '../components/Modal.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAdminAuth } from '../hooks/useAdminAuth.js';
+import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
 import { calculateWebinarDate, deriveQuarterLabel } from '../utils/dateUtils.js';
 import { findActiveEarning, getGroupSharedFields, groupByReportDate } from '../utils/groupEarnings.js';
@@ -18,6 +19,14 @@ import { findActiveEarning, getGroupSharedFields, groupByReportDate } from '../u
 export default function AdminPage({ earnings, setEarnings, companies, onSaveCompany, onDeleteCompany }) {
   const { user, loading, logout } = useAdminAuth();
   const authed = Boolean(user);
+  // Q1 2026 lives in its own Firestore collection (see useFirestoreQ1Earnings),
+  // so switching seasons here just swaps which earnings/setEarnings pair the
+  // Cards tab operates on — it's physically impossible for this to touch
+  // live Q2 data while 'Q1-2026' is selected.
+  const [activeSeason, setActiveSeason] = useState('Q2-2026');
+  const [q1Earnings, setQ1Earnings] = useFirestoreQ1Earnings();
+  const activeEarnings = activeSeason === 'Q1-2026' ? q1Earnings : earnings;
+  const setActiveEarnings = activeSeason === 'Q1-2026' ? setQ1Earnings : setEarnings;
   const [tab, setTab] = useState('cards');
   const [formMode, setFormMode] = useState('closed');
   const [editingGroupEarnings, setEditingGroupEarnings] = useState(null);
@@ -29,7 +38,9 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   const [checkStatus, setCheckStatus] = useState(null);
 
   useEffect(() => {
-    if (!authed || !shouldRunCheck(lastCheck)) return;
+    // Q1 2026 is a frozen archive — checking it against the live Finnhub
+    // feed doesn't make sense, so the check only ever runs for live Q2 data.
+    if (!authed || activeSeason !== 'Q2-2026' || !shouldRunCheck(lastCheck)) return;
     setCheckStatus('checking');
     fetchEarningsDiscrepancies(earnings)
       .then((found) => {
@@ -43,7 +54,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
       });
     // Runs once per admin session/day; intentionally not re-triggered by earnings edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authed]);
+  }, [authed, activeSeason]);
 
   function handleApplyDiscrepancy(target) {
     setEarnings((prev) =>
@@ -62,35 +73,35 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   }
 
   function handleSaveNewCard(data) {
-    setEarnings((prev) => [...prev, data]);
+    setActiveEarnings((prev) => [...prev, data]);
     closeForm();
   }
 
   function handleSaveAddToGroup(data) {
-    setEarnings((prev) => [...prev, data]);
+    setActiveEarnings((prev) => [...prev, data]);
     closeForm();
   }
 
   function handleEditGroup(reportDate) {
-    const groups = groupByReportDate(earnings);
+    const groups = groupByReportDate(activeEarnings);
     setEditingGroupEarnings(groups.get(reportDate) || []);
     setFormMode('editGroup');
   }
 
   function handleToggleWebinarEnded(reportDate) {
-    setEarnings((prev) => {
+    setActiveEarnings((prev) => {
       const isEnded = prev.some((e) => e.reportDate === reportDate && e.webinarEnded);
       return prev.map((e) => (e.reportDate === reportDate ? { ...e, webinarEnded: !isEnded } : e));
     });
   }
 
   function handleDeleteGroup(reportDate) {
-    setEarnings((prev) => prev.filter((e) => e.reportDate !== reportDate));
+    setActiveEarnings((prev) => prev.filter((e) => e.reportDate !== reportDate));
   }
 
   function handleEditCompany(ticker) {
     setEditingCompanyTicker(ticker);
-    setEditingCompanyEarning(findActiveEarning(earnings, ticker));
+    setEditingCompanyEarning(findActiveEarning(activeEarnings, ticker));
     setCompanyFormOpen(true);
   }
 
@@ -112,7 +123,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   function migrateCompanyEarning(ticker, previousEarning, newDate, marketTime, epsEstimate, revenueEstimate) {
     if (!newDate) {
       if (previousEarning) {
-        setEarnings((prev) => prev.filter((e) => e.id !== previousEarning.id));
+        setActiveEarnings((prev) => prev.filter((e) => e.id !== previousEarning.id));
       }
       return;
     }
@@ -120,7 +131,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
     const targetDate = calculateWebinarDate(newDate, marketTime);
 
     if (previousEarning && previousEarning.reportDate === targetDate) {
-      setEarnings((prev) =>
+      setActiveEarnings((prev) =>
         prev.map((e) =>
           e.id === previousEarning.id ? { ...e, marketTiming: marketTime, epsEstimate, revenueEstimate } : e,
         ),
@@ -128,7 +139,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
       return;
     }
 
-    setEarnings((prev) => {
+    setActiveEarnings((prev) => {
       const destinationGroup = prev.filter((e) => e.reportDate === targetDate && e.id !== previousEarning?.id);
       const shared = getGroupSharedFields(destinationGroup);
       const movedEntry = {
@@ -163,7 +174,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   // update, so edits, additions, and removals all land together.
   function handleSaveGroup(updatedGroupEarnings) {
     const originalIds = new Set(editingGroupEarnings.map((e) => e.id));
-    setEarnings((prev) => [...prev.filter((e) => !originalIds.has(e.id)), ...updatedGroupEarnings]);
+    setActiveEarnings((prev) => [...prev.filter((e) => !originalIds.has(e.id)), ...updatedGroupEarnings]);
     closeForm();
   }
 
@@ -180,6 +191,14 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-gray-900">Админ-панель</h1>
         <div className="flex items-center gap-3">
+          <select
+            value={activeSeason}
+            onChange={(e) => setActiveSeason(e.target.value)}
+            className="text-xs font-semibold text-brand bg-blue-50 border border-blue-200 rounded-md px-2 py-1.5"
+          >
+            <option value="Q1-2026">Сезон: Q1 2026</option>
+            <option value="Q2-2026">Сезон: Q2 2026 (Текущий)</option>
+          </select>
           <a href="?" className="text-xs text-gray-500">
             На главную
           </a>
@@ -221,7 +240,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
           {formMode === 'newCard' ? (
             <AdminForm editingEarning={null} companies={companies} onSave={handleSaveNewCard} onCancel={closeForm} />
           ) : formMode === 'addToGroup' ? (
-            <AdminAddToGroupForm earnings={earnings} companies={companies} onSave={handleSaveAddToGroup} onCancel={closeForm} />
+            <AdminAddToGroupForm earnings={activeEarnings} companies={companies} onSave={handleSaveAddToGroup} onCancel={closeForm} />
           ) : (
             <div className="flex space-x-3">
               <button
@@ -246,7 +265,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
           </Modal>
 
           <AdminGroupTable
-            earnings={earnings}
+            earnings={activeEarnings}
             onEdit={handleEditGroup}
             onToggleWebinarEnded={handleToggleWebinarEnded}
             onDeleteGroup={handleDeleteGroup}
