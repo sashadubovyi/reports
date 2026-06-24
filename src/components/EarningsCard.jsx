@@ -1,3 +1,4 @@
+import { LuMoon, LuSun } from 'react-icons/lu';
 import { formatPastCardDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
@@ -27,6 +28,7 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
         {earnings.map((earning) => {
           const company = companyByTicker.get(earning.ticker);
           const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия' : 'После закрытия';
+          const TimingIcon = earning.marketTiming === 'BMO' ? LuSun : LuMoon;
           const gapDollar = formatSigned(earning.gapDollar, { prefix: '$' });
           const gapPercent = formatSigned(earning.gapPercent, { suffix: '%' });
           const gap = gapDollar || gapPercent;
@@ -43,8 +45,13 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
                     <p className="text-xs text-gray-500">{earning.quarter}</p>
                   </div>
                 </div>
-                <span className="text-[11px] font-semibold text-brand bg-blue-50 rounded px-2 py-1 flex-shrink-0 whitespace-nowrap">
-                  Отчёт: {timingLabel}
+                <span
+                  role="img"
+                  className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
+                  title={`Отчёт: ${timingLabel}`}
+                  aria-label={`Отчёт: ${timingLabel}`}
+                >
+                  <TimingIcon className="w-4 h-4" />
                 </span>
               </div>
 
