@@ -67,6 +67,20 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
     setDiscrepancies((prev) => prev.filter((d) => d !== target));
   }
 
+  function handleApplyAllDiscrepancies() {
+    setEarnings((prev) =>
+      prev.map((e) => {
+        const updates = discrepancies.filter((d) => d.earningId === e.id);
+        return updates.length ? updates.reduce((acc, d) => ({ ...acc, [d.field]: d.newValue }), e) : e;
+      }),
+    );
+    setDiscrepancies([]);
+  }
+
+  function handleIgnoreAllDiscrepancies() {
+    setDiscrepancies([]);
+  }
+
   function closeForm() {
     setFormMode('closed');
     setEditingGroupEarnings(null);
@@ -235,6 +249,8 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
             lastCheck={lastCheck}
             onApply={handleApplyDiscrepancy}
             onDismiss={handleDismissDiscrepancy}
+            onApplyAll={handleApplyAllDiscrepancies}
+            onIgnoreAll={handleIgnoreAllDiscrepancies}
           />
 
           {formMode === 'newCard' ? (

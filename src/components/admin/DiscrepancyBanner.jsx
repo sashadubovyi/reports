@@ -1,4 +1,12 @@
-export default function DiscrepancyBanner({ discrepancies, checkStatus, lastCheck, onApply, onDismiss }) {
+export default function DiscrepancyBanner({
+  discrepancies,
+  checkStatus,
+  lastCheck,
+  onApply,
+  onDismiss,
+  onApplyAll,
+  onIgnoreAll,
+}) {
   if (checkStatus === null && discrepancies.length === 0) return null;
 
   const lastCheckLabel = lastCheck
@@ -15,7 +23,25 @@ export default function DiscrepancyBanner({ discrepancies, checkStatus, lastChec
 
       {discrepancies.length > 0 ? (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
-          <p className="text-sm font-semibold text-amber-800">Finnhub: найдено расхождений — {discrepancies.length}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-amber-800">Finnhub: найдено расхождений — {discrepancies.length}</p>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={onApplyAll}
+                className="text-xs font-semibold text-white bg-brand rounded px-2 py-1"
+              >
+                Принять все
+              </button>
+              <button
+                type="button"
+                onClick={onIgnoreAll}
+                className="text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded px-2 py-1"
+              >
+                Игнорировать все
+              </button>
+            </div>
+          </div>
           {discrepancies.map((d) => (
             <div
               key={`${d.earningId}-${d.field}`}

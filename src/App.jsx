@@ -6,12 +6,13 @@ import { useFirestoreEarnings } from './hooks/useFirestoreEarnings.js';
 import { useFirestoreCompanies } from './hooks/useFirestoreCompanies.js';
 import { INITIAL_EARNINGS } from './data/initialEarnings.js';
 
-// /q1report is a direct-URL-only archive route, deliberately not reachable
-// from any nav link or button in the live app (see Q1ReportPage.jsx).
+// /q1report is reachable via the global Header season switcher; ?page=admin
+// is checked first so the admin link still works while on /q1report.
 function getPageFromLocation() {
-  if (window.location.pathname === '/q1report') return 'q1report';
   const params = new URLSearchParams(window.location.search);
-  return params.get('page') === 'admin' ? 'admin' : 'landing';
+  if (params.get('page') === 'admin') return 'admin';
+  if (window.location.pathname === '/q1report') return 'q1report';
+  return 'landing';
 }
 
 export default function App() {
