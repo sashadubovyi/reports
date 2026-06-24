@@ -1,18 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Header from '../components/Header.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import FilterTabs from '../components/FilterTabs.jsx';
 import EarningsList from '../components/EarningsList.jsx';
-import NewsList from '../components/NewsList.jsx';
+import TradingHistoryView from '../components/TradingHistoryView.jsx';
 import Footer from '../components/Footer.jsx';
-import { useNewsFeed } from '../hooks/useNewsFeed.js';
-import { getUpcomingTickers } from '../utils/upcomingTickers.js';
 
 export default function LandingPage({ earnings, companies }) {
   const [filter, setFilter] = useState('upcoming');
   const [search, setSearch] = useState('');
-  const upcomingTickers = useMemo(() => getUpcomingTickers(earnings), [earnings]);
-  const { status: newsStatus, articles: newsArticles, refresh: refreshNews } = useNewsFeed(filter === 'news', upcomingTickers);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -20,8 +16,8 @@ export default function LandingPage({ earnings, companies }) {
       <SearchBar value={search} onChange={setSearch} />
       <FilterTabs activeTab={filter} onChange={setFilter} />
       <main>
-        {filter === 'news' ? (
-          <NewsList status={newsStatus} articles={newsArticles} search={search} onRefresh={refreshNews} />
+        {filter === 'history' ? (
+          <TradingHistoryView season="Q2-2026" />
         ) : (
           <EarningsList earnings={earnings} filter={filter} search={search} companies={companies} />
         )}
