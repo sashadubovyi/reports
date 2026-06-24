@@ -13,7 +13,11 @@ function formatMoney(value) {
 
 export default function AdminTradingHistoryTable({ points, onEdit, onDelete }) {
   if (points.length === 0) {
-    return <p className="text-sm text-gray-500">Точек истории пока нет</p>;
+    return (
+      <p className="text-sm text-gray-500 text-center">
+        Серия торговых вебинаров еще не началась, как только завершиться первый вебинар с Q2 2026 Вы увидите историю
+      </p>
+    );
   }
 
   const sorted = buildEquityCurvePoints(points);
