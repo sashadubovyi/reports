@@ -36,8 +36,8 @@ function Q1Header() {
         onChange={handleSeasonChange}
         className="text-xs font-semibold text-brand bg-blue-50 border border-blue-200 rounded-md px-2 py-1.5 flex-shrink-0"
       >
-        <option value="Q1-2026">Сезон: Q1 2026</option>
-        <option value="Q2-2026">Сезон: Q2 2026 (Текущий)</option>
+        <option value="Q1-2026">Q1 2026</option>
+        <option value="Q2-2026">Q2 2026</option>
       </select>
     </header>
   );
