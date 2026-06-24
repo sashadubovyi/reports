@@ -6,11 +6,14 @@ import AdminAddToGroupForm from '../components/admin/AdminAddToGroupForm.jsx';
 import AdminGroupTable from '../components/admin/AdminGroupTable.jsx';
 import AdminCompanyForm from '../components/admin/AdminCompanyForm.jsx';
 import AdminCompanyTable from '../components/admin/AdminCompanyTable.jsx';
+import AdminTradingHistoryForm from '../components/admin/AdminTradingHistoryForm.jsx';
+import AdminTradingHistoryTable from '../components/admin/AdminTradingHistoryTable.jsx';
 import DiscrepancyBanner from '../components/admin/DiscrepancyBanner.jsx';
 import Modal from '../components/Modal.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAdminAuth } from '../hooks/useAdminAuth.js';
 import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
+import { useFirestoreTradingHistory } from '../hooks/useFirestoreTradingHistory.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
 import { calculateWebinarDate, deriveQuarterLabel } from '../utils/dateUtils.js';
 import { findActiveEarning, getGroupSharedFields, groupByReportDate } from '../utils/groupEarnings.js';
@@ -27,12 +30,15 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   const [q1Earnings, setQ1Earnings] = useFirestoreQ1Earnings();
   const activeEarnings = activeSeason === 'Q1-2026' ? q1Earnings : earnings;
   const setActiveEarnings = activeSeason === 'Q1-2026' ? setQ1Earnings : setEarnings;
+  const [tradingHistory, setTradingHistory] = useFirestoreTradingHistory(activeSeason);
   const [tab, setTab] = useState('cards');
   const [formMode, setFormMode] = useState('closed');
   const [editingGroupEarnings, setEditingGroupEarnings] = useState(null);
   const [editingCompanyTicker, setEditingCompanyTicker] = useState(null);
   const [editingCompanyEarning, setEditingCompanyEarning] = useState(null);
   const [companyFormOpen, setCompanyFormOpen] = useState(false);
+  const [editingHistoryPointId, setEditingHistoryPointId] = useState(null);
+  const [historyFormOpen, setHistoryFormOpen] = useState(false);
   const [lastCheck, setLastCheck] = useLocalStorage('otkritie-finnhub-last-check', null);
   const [discrepancies, setDiscrepancies] = useLocalStorage('otkritie-finnhub-discrepancies', []);
   const [checkStatus, setCheckStatus] = useState(null);
@@ -194,6 +200,28 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
     closeForm();
   }
 
+  function handleEditHistoryPoint(id) {
+    setEditingHistoryPointId(id);
+    setHistoryFormOpen(true);
+  }
+
+  function closeHistoryForm() {
+    setHistoryFormOpen(false);
+    setEditingHistoryPointId(null);
+  }
+
+  function handleSaveHistoryPoint(data) {
+    setTradingHistory((prev) => {
+      const exists = prev.some((p) => p.id === data.id);
+      return exists ? prev.map((p) => (p.id === data.id ? data : p)) : [...prev, data];
+    });
+    closeHistoryForm();
+  }
+
+  function handleDeleteHistoryPoint(id) {
+    setTradingHistory((prev) => prev.filter((p) => p.id !== id));
+  }
+
   if (loading) {
     return null;
   }
@@ -228,6 +256,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
         {[
           { key: 'cards', label: 'Карточки' },
           { key: 'companies', label: 'Компании' },
+          { key: 'history', label: 'История' },
         ].map((t) => (
           <button
             key={t.key}
@@ -288,6 +317,36 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
             onToggleWebinarEnded={handleToggleWebinarEnded}
             onDeleteGroup={handleDeleteGroup}
           />
+        </main>
+      ) : tab === 'history' ? (
+        <main className="space-y-4">
+          {historyFormOpen && !editingHistoryPointId ? (
+            <AdminTradingHistoryForm
+              editingPoint={null}
+              companies={companies}
+              onSave={handleSaveHistoryPoint}
+              onCancel={closeHistoryForm}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setHistoryFormOpen(true)}
+              className="w-full bg-brand text-white font-semibold rounded-md py-2.5 text-sm"
+            >
+              + Новая точка истории
+            </button>
+          )}
+
+          <Modal open={historyFormOpen && Boolean(editingHistoryPointId)} onClose={closeHistoryForm}>
+            <AdminTradingHistoryForm
+              editingPoint={tradingHistory.find((p) => p.id === editingHistoryPointId) || null}
+              companies={companies}
+              onSave={handleSaveHistoryPoint}
+              onCancel={closeHistoryForm}
+            />
+          </Modal>
+
+          <AdminTradingHistoryTable points={tradingHistory} onEdit={handleEditHistoryPoint} onDelete={handleDeleteHistoryPoint} />
         </main>
       ) : (
         <main className="space-y-4">
