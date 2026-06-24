@@ -3,7 +3,7 @@ import { LuMoon, LuSun } from 'react-icons/lu';
 import CompanyLogo from '../components/CompanyLogo.jsx';
 import Footer from '../components/Footer.jsx';
 import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
-import { calculateWebinarDate, formatPastCardDate } from '../utils/dateUtils.js';
+import { calculateWebinarDate, formatDisplayDate, formatWebinarDateTime } from '../utils/dateUtils.js';
 import { openOfficialSite } from '../utils/smartRedirect.js';
 
 // Isolated archive route (/q1report) — not linked from anywhere in the live
@@ -357,8 +357,14 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
       <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
         <h2 className="text-sm font-bold text-brand">
-          <span className="text-gray-500 font-normal">Дата вебинара: </span>
-          {formatPastCardDate(webinarDate)}
+          {recordingUrl ? (
+            <>
+              <span className="text-gray-500 font-normal">Дата вебинара: </span>
+              {formatWebinarDateTime(webinarDate)}
+            </>
+          ) : (
+            formatDisplayDate(webinarDate)
+          )}
         </h2>
       </div>
 

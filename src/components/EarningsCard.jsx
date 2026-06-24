@@ -1,5 +1,5 @@
 import { LuMoon, LuSun } from 'react-icons/lu';
-import { formatPastCardDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
+import { formatDisplayDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
@@ -14,13 +14,20 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
   const upcoming = isUpcoming(webinarDate) && !earnings.some((earning) => earning.webinarEnded);
   const registrationUrl = earnings.find((earning) => earning.registrationUrl)?.registrationUrl;
   const recordingUrl = earnings.find((earning) => earning.recordingUrl)?.recordingUrl;
+  const hasWebinarLink = upcoming ? Boolean(registrationUrl) : Boolean(recordingUrl);
 
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
       <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
         <h2 className="text-sm font-bold text-brand">
-          <span className="text-gray-500 font-normal">Дата вебинара: </span>
-          {upcoming ? formatWebinarDateTime(webinarDate) : formatPastCardDate(webinarDate)}
+          {hasWebinarLink ? (
+            <>
+              <span className="text-gray-500 font-normal">Дата вебинара: </span>
+              {formatWebinarDateTime(webinarDate)}
+            </>
+          ) : (
+            formatDisplayDate(webinarDate)
+          )}
         </h2>
       </div>
 
