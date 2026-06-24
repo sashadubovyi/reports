@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import EarningsList from '../components/EarningsList.jsx';
 import Footer from '../components/Footer.jsx';
 import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
@@ -98,6 +98,7 @@ function formatStepperLabel(point) {
 function EquityCurveChart({ points, activeIndex, onSelect }) {
   const [hovered, setHovered] = useState(null);
   const displayIndex = hovered ?? activeIndex;
+  const scrollRef = useRef(null);
 
   const width = PADDING_X * 2 + (points.length - 1) * POINT_GAP;
   const height = PADDING_TOP + CHART_HEIGHT + PADDING_BOTTOM;
@@ -128,8 +129,20 @@ function EquityCurveChart({ points, activeIndex, onSelect }) {
   const tooltipWidth = 180;
   const tooltipHeight = 16 + tooltipLines.length * 16;
 
+  // Keeps the selected endpoint centered in the scrollable viewport,
+  // whether it was picked from the chart itself, the stepper, or the list.
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const targetX = x(activeIndex);
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const center = Math.max(0, Math.min(targetX - container.clientWidth / 2, maxScroll));
+    container.scrollTo({ left: center, behavior: 'smooth' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
+
   return (
-    <div className="overflow-x-auto whitespace-nowrap">
+    <div ref={scrollRef} className="overflow-x-auto whitespace-nowrap">
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="block">
         <defs>
           <linearGradient id="equityArea" x1="0" y1="0" x2="0" y2="1">
@@ -221,7 +234,7 @@ function EquityStepper({ points, activeIndex, onSelect }) {
         type="button"
         onClick={() => onSelect((activeIndex - 1 + points.length) % points.length)}
         aria-label="Предыдущая точка"
-        className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center"
+        className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-100 text-gray-600 text-2xl font-bold flex items-center justify-center active:bg-gray-200"
       >
         ‹
       </button>
@@ -232,7 +245,7 @@ function EquityStepper({ points, activeIndex, onSelect }) {
         type="button"
         onClick={() => onSelect((activeIndex + 1) % points.length)}
         aria-label="Следующая точка"
-        className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold flex items-center justify-center"
+        className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-100 text-gray-600 text-2xl font-bold flex items-center justify-center active:bg-gray-200"
       >
         ›
       </button>
