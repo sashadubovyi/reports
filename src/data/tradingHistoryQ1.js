@@ -1,0 +1,57 @@
+// Real account history for the Q1 2026 season, including the Jan 30
+// withdrawal that reset the tracked balance back to $10,000. Used as the
+// Firestore seed baseline so /q1report never renders an empty chart on
+// first load — see useFirestoreTradingHistory.js.
+export const TRADING_HISTORY_Q1_2026 = [
+  { id: 'th-q1-01', date: '2026-01-14', tickers: [], type: 'normal', profitDollar: 650.0, profitPercent: 6.5, balance: 10650.0 },
+  { id: 'th-q1-02', date: '2026-01-15', tickers: [], type: 'normal', profitDollar: 876.5, profitPercent: 8.23, balance: 11526.5 },
+  { id: 'th-q1-03', date: '2026-01-21', tickers: [], type: 'normal', profitDollar: 1129.6, profitPercent: 9.8, balance: 12656.1 },
+  { id: 'th-q1-04', date: '2026-01-22', tickers: [], type: 'normal', profitDollar: 932.75, profitPercent: 7.37, balance: 13588.85 },
+  { id: 'th-q1-05', date: '2026-01-23', tickers: [], type: 'normal', profitDollar: 1391.5, profitPercent: 10.24, balance: 14980.35 },
+  { id: 'th-q1-06', date: '2026-01-26', tickers: [], type: 'normal', profitDollar: 1534.0, profitPercent: 10.24, balance: 16514.35 },
+  { id: 'th-q1-07', date: '2026-01-27', tickers: [], type: 'normal', profitDollar: 961.14, profitPercent: 5.82, balance: 17475.49 },
+  { id: 'th-q1-08', date: '2026-01-29', tickers: [], type: 'normal', profitDollar: 2708.7, profitPercent: 15.5, balance: 20184.19 },
+  {
+    id: 'th-q1-09',
+    date: '2026-01-30',
+    tickers: [],
+    type: 'withdrawal',
+    label: 'Вывод прибыли',
+    note: 'Баланс сброшен до 10 000 $',
+    profitDollar: 26257.61,
+    profitPercent: 130.09,
+    balance: 46441.8,
+  },
+  { id: 'th-q1-10', date: '2026-02-04', tickers: [], type: 'normal', profitDollar: 170.0, profitPercent: 1.7, balance: 10170.0 },
+  { id: 'th-q1-11', date: '2026-02-05', tickers: [], type: 'normal', profitDollar: 4036.47, profitPercent: 39.69, balance: 14206.47 },
+  {
+    id: 'th-q1-12',
+    date: '2026-02-06',
+    tickers: ['AMZN'],
+    type: 'marathon',
+    label: 'Марафон AMZN',
+    profitDollar: 4398.32,
+    profitPercent: 30.96,
+    balance: 18604.79,
+  },
+  {
+    id: 'th-q1-13',
+    date: '2026-02-06',
+    tickers: ['NVDA', 'ZM'],
+    type: 'marathon',
+    label: 'Рекорд NVDA+ZM',
+    profitDollar: 7802.85,
+    profitPercent: 41.94,
+    balance: 26407.64,
+  },
+  {
+    id: 'th-q1-14',
+    date: '2026-02-06',
+    tickers: [],
+    type: 'normal',
+    axisNote: 'итог',
+    profitDollar: 29278.15,
+    profitPercent: 110.87,
+    balance: 55685.79,
+  },
+];

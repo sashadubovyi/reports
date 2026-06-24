@@ -3,6 +3,8 @@ import { LuMoon, LuSun } from 'react-icons/lu';
 import CompanyLogo from '../components/CompanyLogo.jsx';
 import Footer from '../components/Footer.jsx';
 import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
+import { useFirestoreTradingHistory } from '../hooks/useFirestoreTradingHistory.js';
+import { buildEquityCurvePoints } from '../utils/equityCurve.js';
 import { calculateWebinarDate, formatDisplayDate, formatWebinarDateTime } from '../utils/dateUtils.js';
 import { openOfficialSite } from '../utils/smartRedirect.js';
 
@@ -45,60 +47,6 @@ function Q1Header() {
   );
 }
 
-// Real account history for the Q1 2026 season, including the Jan 30
-// withdrawal that reset the tracked balance back to $10,000.
-const EQUITY_CURVE = [
-  { date: '14 янв 2026', fullDate: '14 января 2026', axisLabel: '14 янв', balance: 10650.0, profitPercent: 6.5, profitDollar: 650.0 },
-  { date: '15 янв 2026', fullDate: '15 января 2026', axisLabel: '15 янв', balance: 11526.5, profitPercent: 8.23, profitDollar: 876.5 },
-  { date: '21 янв 2026', fullDate: '21 января 2026', axisLabel: '21 янв', balance: 12656.1, profitPercent: 9.8, profitDollar: 1129.6 },
-  { date: '22 янв 2026', fullDate: '22 января 2026', axisLabel: '22 янв', balance: 13588.85, profitPercent: 7.37, profitDollar: 932.75 },
-  { date: '23 янв 2026', fullDate: '23 января 2026', axisLabel: '23 янв', balance: 14980.35, profitPercent: 10.24, profitDollar: 1391.5 },
-  { date: '26 янв 2026', fullDate: '26 января 2026', axisLabel: '26 янв', balance: 16514.35, profitPercent: 10.24, profitDollar: 1534.0 },
-  { date: '27 янв 2026', fullDate: '27 января 2026', axisLabel: '27 янв', balance: 17475.49, profitPercent: 5.82, profitDollar: 961.14 },
-  { date: '29 янв 2026', fullDate: '29 января 2026', axisLabel: '29 янв', balance: 20184.19, profitPercent: 15.5, profitDollar: 2708.7 },
-  {
-    date: '30 янв 2026',
-    fullDate: '30 января 2026',
-    axisLabel: '30 янв',
-    balance: 46441.8,
-    profitPercent: 130.09,
-    profitDollar: 26257.61,
-    label: 'Вывод прибыли',
-    note: 'Баланс сброшен до 10 000 $',
-    event: true,
-  },
-  { date: '4 фев 2026', fullDate: '4 февраля 2026', axisLabel: '4 фев', balance: 10170.0, profitPercent: 1.7, profitDollar: 170.0 },
-  { date: '5 фев 2026', fullDate: '5 февраля 2026', axisLabel: '5 фев', balance: 14206.47, profitPercent: 39.69, profitDollar: 4036.47 },
-  {
-    date: '6 фев 2026',
-    fullDate: '6 февраля 2026',
-    axisLabel: '6 фев (AMZN)',
-    balance: 18604.79,
-    profitPercent: 30.96,
-    profitDollar: 4398.32,
-    label: 'Марафон AMZN',
-    companies: ['AMZN'],
-  },
-  {
-    date: '6 фев 2026',
-    fullDate: '6 февраля 2026',
-    axisLabel: '6 фев (NVDA+ZM)',
-    balance: 26407.64,
-    profitPercent: 41.94,
-    profitDollar: 7802.85,
-    label: 'Рекорд NVDA+ZM',
-    companies: ['NVDA', 'ZM'],
-  },
-  {
-    date: '6 фев 2026',
-    fullDate: '6 февраля 2026',
-    axisLabel: '6 фев (итог)',
-    balance: 55685.79,
-    profitPercent: 110.87,
-    profitDollar: 29278.15,
-  },
-];
-
 const POINT_GAP = 100;
 const PADDING_X = 50;
 const PADDING_TOP = 40;
@@ -139,7 +87,7 @@ function EquityCurveChart({ points, activeIndex, onSelect }) {
 
   const active = points[displayIndex];
   const tooltipLines = [
-    active.date,
+    active.dateLabel,
     `Прибыль: +${active.profitPercent}% / +$${formatMoney(active.profitDollar)}`,
     `Баланс: $${formatMoney(active.balance)}`,
     ...(active.label ? [active.label] : []),
@@ -291,8 +239,8 @@ function TransactionsList({ points, activeIndex, onSelect }) {
               (i === activeIndex ? 'bg-blue-50' : '')
             }
           >
-            <span className="text-gray-600 whitespace-nowrap">{p.date}</span>
-            <span className="text-gray-500 truncate">{p.companies ? p.companies.join(', ') : '—'}</span>
+            <span className="text-gray-600 whitespace-nowrap">{p.dateLabel}</span>
+            <span className="text-gray-500 truncate">{p.tickers && p.tickers.length ? p.tickers.join(', ') : '—'}</span>
             <span className={`font-semibold whitespace-nowrap text-right ${p.event ? 'text-amber-600' : 'text-green-600'}`}>
               {p.event ? 'ВЫВОД ' : '+'}
               {p.event ? '' : '$'}
@@ -306,17 +254,27 @@ function TransactionsList({ points, activeIndex, onSelect }) {
 }
 
 function TradingHistoryView() {
+  const [rawPoints] = useFirestoreTradingHistory('Q1-2026');
+  const points = useMemo(() => buildEquityCurvePoints(rawPoints), [rawPoints]);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (activeIndex >= points.length) setActiveIndex(Math.max(0, points.length - 1));
+  }, [points.length, activeIndex]);
+
+  if (points.length === 0) {
+    return <p className="text-center text-gray-500 text-sm py-10">Торговая история пока не заполнена</p>;
+  }
 
   return (
     <div className="px-4 py-4 space-y-3">
       <div className="bg-white border border-gray-300 rounded-lg shadow-sm p-3">
-        <EquityCurveChart points={EQUITY_CURVE} activeIndex={activeIndex} onSelect={setActiveIndex} />
+        <EquityCurveChart points={points} activeIndex={activeIndex} onSelect={setActiveIndex} />
       </div>
 
-      <EquityStepper points={EQUITY_CURVE} activeIndex={activeIndex} onSelect={setActiveIndex} />
+      <EquityStepper points={points} activeIndex={activeIndex} onSelect={setActiveIndex} />
 
-      <TransactionsList points={EQUITY_CURVE} activeIndex={activeIndex} onSelect={setActiveIndex} />
+      <TransactionsList points={points} activeIndex={activeIndex} onSelect={setActiveIndex} />
 
       <p className="text-[11px] text-gray-400 leading-snug">
         Прошлые результаты не гарантируют будущую доходность. Наведите курсор, нажмите на точку графика или

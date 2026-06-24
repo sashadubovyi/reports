@@ -14,5 +14,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
+    match /trading_history_q1_2026/{pointId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /trading_history_q2_2026/{pointId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
   }
 }
