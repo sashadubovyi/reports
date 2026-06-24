@@ -1,5 +1,4 @@
-import { LuSunrise, LuSunset } from 'react-icons/lu';
-import { calculateWebinarDate, formatPastCardDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
+import { formatPastCardDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
@@ -10,12 +9,8 @@ function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
   return { text: `${sign}${prefix}${Math.abs(num)}${suffix}`, positive: num >= 0 };
 }
 
-export default function EarningsCard({ reportDate, earnings, companyByTicker }) {
-  const upcoming = isUpcoming(reportDate) && !earnings.some((earning) => earning.webinarEnded);
-  const webinarDate = earnings
-    .map((earning) => calculateWebinarDate(earning.reportDate, earning.marketTiming))
-    .sort()
-    .at(-1);
+export default function EarningsCard({ webinarDate, earnings, companyByTicker }) {
+  const upcoming = isUpcoming(webinarDate) && !earnings.some((earning) => earning.webinarEnded);
   const registrationUrl = earnings.find((earning) => earning.registrationUrl)?.registrationUrl;
   const recordingUrl = earnings.find((earning) => earning.recordingUrl)?.recordingUrl;
 
@@ -23,28 +18,21 @@ export default function EarningsCard({ reportDate, earnings, companyByTicker }) 
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
       <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
         <h2 className="text-sm font-bold text-brand">
-          {upcoming ? (
-            <>
-              <span className="text-gray-500 font-normal">Дата вебинара: </span>
-              {formatWebinarDateTime(webinarDate)}
-            </>
-          ) : (
-            formatPastCardDate(webinarDate)
-          )}
+          <span className="text-gray-500 font-normal">Дата вебинара: </span>
+          {upcoming ? formatWebinarDateTime(webinarDate) : formatPastCardDate(webinarDate)}
         </h2>
       </div>
 
       <div className="divide-y divide-gray-100">
         {earnings.map((earning) => {
           const company = companyByTicker.get(earning.ticker);
-          const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия рынка' : 'После закрытия рынка';
-          const TimingIcon = earning.marketTiming === 'BMO' ? LuSunrise : LuSunset;
+          const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия' : 'После закрытия';
           const gapDollar = formatSigned(earning.gapDollar, { prefix: '$' });
           const gapPercent = formatSigned(earning.gapPercent, { suffix: '%' });
           const gap = gapDollar || gapPercent;
           return (
             <div key={earning.id} className="px-4 py-3 space-y-2">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2.5">
                   <CompanyLogo domain={company?.domain} logoUrl={company?.logoUrl} ticker={earning.ticker} />
                   <div>
@@ -52,22 +40,12 @@ export default function EarningsCard({ reportDate, earnings, companyByTicker }) 
                       {company ? company.name : earning.ticker}{' '}
                       <span className="text-gray-500 font-normal">({earning.ticker})</span>
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {earning.quarter}
-                      {upcoming ? ` · ${timingLabel}` : ''}
-                    </p>
+                    <p className="text-xs text-gray-500">{earning.quarter}</p>
                   </div>
                 </div>
-                {upcoming ? (
-                  <span
-                    role="img"
-                    className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
-                    title={timingLabel}
-                    aria-label={timingLabel}
-                  >
-                    <TimingIcon className="w-4 h-4" />
-                  </span>
-                ) : null}
+                <span className="text-[11px] font-semibold text-brand bg-blue-50 rounded px-2 py-1 flex-shrink-0 whitespace-nowrap">
+                  Отчёт: {timingLabel}
+                </span>
               </div>
 
               <div className="flex text-sm">

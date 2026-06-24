@@ -1,4 +1,4 @@
-import { isUpcoming } from './dateUtils.js';
+import { calculateWebinarDate, isUpcoming } from './dateUtils.js';
 
 export function groupByReportDate(earnings) {
   const groups = new Map();
@@ -6,6 +6,20 @@ export function groupByReportDate(earnings) {
     const list = groups.get(earning.reportDate) || [];
     list.push(earning);
     groups.set(earning.reportDate, list);
+  });
+  return groups;
+}
+
+// Used by the live home page so AMC reports group with whoever else's
+// webinar lands on the same (possibly next-trading-day-shifted) date,
+// instead of grouping by the raw calendar day the report was filed on.
+export function groupByWebinarDate(earnings) {
+  const groups = new Map();
+  earnings.forEach((earning) => {
+    const webinarDate = calculateWebinarDate(earning.reportDate, earning.marketTiming);
+    const list = groups.get(webinarDate) || [];
+    list.push(earning);
+    groups.set(webinarDate, list);
   });
   return groups;
 }

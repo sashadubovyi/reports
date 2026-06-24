@@ -1,6 +1,6 @@
 import EarningsCard from './EarningsCard.jsx';
-import { isUpcoming } from '../utils/dateUtils.js';
-import { groupByReportDate } from '../utils/groupEarnings.js';
+import { calculateWebinarDate, isUpcoming } from '../utils/dateUtils.js';
+import { groupByWebinarDate } from '../utils/groupEarnings.js';
 
 function matchesSearch(earning, query, companyByTicker) {
   if (!query) return true;
@@ -12,11 +12,13 @@ function matchesSearch(earning, query, companyByTicker) {
 export default function EarningsList({ earnings, filter, search = '', companies }) {
   const companyByTicker = new Map(companies.map((c) => [c.ticker, c]));
   const query = search.trim().toLowerCase();
-  const filtered = earnings.filter(
-    (e) =>
-      (filter === 'upcoming' ? isUpcoming(e.reportDate) && !e.webinarEnded : !isUpcoming(e.reportDate) || e.webinarEnded) &&
-      matchesSearch(e, query, companyByTicker),
-  );
+  const filtered = earnings.filter((e) => {
+    const webinarDate = calculateWebinarDate(e.reportDate, e.marketTiming);
+    return (
+      (filter === 'upcoming' ? isUpcoming(webinarDate) && !e.webinarEnded : !isUpcoming(webinarDate) || e.webinarEnded) &&
+      matchesSearch(e, query, companyByTicker)
+    );
+  });
 
   if (filtered.length === 0) {
     return (
@@ -30,15 +32,15 @@ export default function EarningsList({ earnings, filter, search = '', companies 
     );
   }
 
-  const groups = groupByReportDate(filtered);
+  const groups = groupByWebinarDate(filtered);
   const sortedDates = Array.from(groups.keys()).sort((a, b) =>
     filter === 'upcoming' ? a.localeCompare(b) : b.localeCompare(a)
   );
 
   return (
     <div className="px-4 py-4 space-y-4">
-      {sortedDates.map((reportDate) => (
-        <EarningsCard key={reportDate} reportDate={reportDate} earnings={groups.get(reportDate)} companyByTicker={companyByTicker} />
+      {sortedDates.map((webinarDate) => (
+        <EarningsCard key={webinarDate} webinarDate={webinarDate} earnings={groups.get(webinarDate)} companyByTicker={companyByTicker} />
       ))}
     </div>
   );

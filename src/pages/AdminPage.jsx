@@ -128,12 +128,12 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
   // Moves a ticker's active (upcoming, not-ended) card to match the date set
   // in the Companies tab: updates EPS/revenue in place if the date didn't
   // change, otherwise joins (or creates) the webinar group for the new date.
-  // AMC reports push the group to the next trading day (same rule as the
-  // webinar-date calculation), so the group key is the calculated webinar
-  // date, not the raw selected calendar date.
-  // Groups have no document of their own — they're just earnings rows that
-  // share a reportDate — so leaving the old date naturally empties the old
-  // group with no separate delete needed.
+  // reportDate always stores the raw selected calendar date here — same
+  // convention as the Cards tab (AdminForm/AdminAddToGroupForm/AdminGroupForm)
+  // — so the home page's webinar-date grouping can safely derive the webinar
+  // date from any live card without double-shifting AMC entries. Only the
+  // *group-matching* (which existing group this card should join) uses the
+  // computed webinar date, since that's what visually groups cards together.
   function migrateCompanyEarning(ticker, previousEarning, newDate, marketTime, epsEstimate, revenueEstimate) {
     if (!newDate) {
       if (previousEarning) {
@@ -142,9 +142,9 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
       return;
     }
 
-    const targetDate = calculateWebinarDate(newDate, marketTime);
+    const targetWebinarDate = calculateWebinarDate(newDate, marketTime);
 
-    if (previousEarning && previousEarning.reportDate === targetDate) {
+    if (previousEarning && previousEarning.reportDate === newDate && previousEarning.marketTiming === marketTime) {
       setActiveEarnings((prev) =>
         prev.map((e) =>
           e.id === previousEarning.id ? { ...e, marketTiming: marketTime, epsEstimate, revenueEstimate } : e,
@@ -154,13 +154,15 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
     }
 
     setActiveEarnings((prev) => {
-      const destinationGroup = prev.filter((e) => e.reportDate === targetDate && e.id !== previousEarning?.id);
+      const destinationGroup = prev.filter(
+        (e) => e.id !== previousEarning?.id && calculateWebinarDate(e.reportDate, e.marketTiming) === targetWebinarDate,
+      );
       const shared = getGroupSharedFields(destinationGroup);
       const movedEntry = {
         id: previousEarning?.id || `e-${Date.now()}`,
         ticker,
-        quarter: deriveQuarterLabel(targetDate),
-        reportDate: targetDate,
+        quarter: deriveQuarterLabel(newDate),
+        reportDate: newDate,
         marketTiming: marketTime,
         epsEstimate,
         revenueEstimate,
