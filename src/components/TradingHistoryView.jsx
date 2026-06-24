@@ -79,7 +79,7 @@ function EquityCurveChart({ points, activeIndex, onSelect }) {
         {points.map((p, i) => {
           if (i === 0) return null;
           const prev = points[i - 1];
-          if (!p.event && !prev.event) return null;
+          if (!prev.event) return null;
           const midX = (x(i - 1) + x(i)) / 2;
           return (
             <g key={`reset-${i}`}>
