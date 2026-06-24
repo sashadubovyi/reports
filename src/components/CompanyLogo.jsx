@@ -1,11 +1,14 @@
 import { useState } from 'react';
 
-// Tried in order until one loads. Clearbit's domain-based lookup is blocked
-// in some regions/networks, so a ticker-based source is tried first. An
-// admin-set logoUrl is an explicit override and skips the auto-fetch chain.
+// Tried in order until one loads. Local SVGs (manually curated, see
+// public/icons/) are tried first since they're the highest quality and need
+// no network round-trip; onError falls through to the remote sources below.
+// Clearbit's domain-based lookup is blocked in some regions/networks, so a
+// ticker-based source is tried before it. An admin-set logoUrl is an
+// explicit override and skips the auto-fetch chain entirely.
 function buildSources(domain, ticker, logoUrl) {
   if (logoUrl) return [logoUrl];
-  const sources = [`https://images.financialmodelingprep.com/symbol/${ticker}.png`];
+  const sources = [`/icons/${ticker.toLowerCase()}.svg`, `https://images.financialmodelingprep.com/symbol/${ticker}.png`];
   if (domain) sources.push(`https://logo.clearbit.com/${domain}`);
   return sources;
 }
