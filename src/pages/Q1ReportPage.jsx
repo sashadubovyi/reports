@@ -3,6 +3,7 @@ import { LuMoon, LuSun } from 'react-icons/lu';
 import CompanyLogo from '../components/CompanyLogo.jsx';
 import Footer from '../components/Footer.jsx';
 import TradingHistoryView from '../components/TradingHistoryView.jsx';
+import VideoOnlyToggle from '../components/VideoOnlyToggle.jsx';
 import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
 import { calculateWebinarDate, formatDisplayDate } from '../utils/dateUtils.js';
 import { openOfficialSite } from '../utils/smartRedirect.js';
@@ -154,12 +155,20 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
   );
 }
 
-function PastEarningsList({ earnings, companyByTicker }) {
+function PastEarningsList({ earnings, companyByTicker, videoOnly }) {
   const groups = groupByWebinarDate(earnings);
-  const sortedDates = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
+  let sortedDates = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
+
+  if (videoOnly) {
+    sortedDates = sortedDates.filter((webinarDate) => groups.get(webinarDate).some((e) => e.recordingUrl));
+  }
 
   if (sortedDates.length === 0) {
-    return <p className="text-center text-gray-500 text-sm py-10">Нет прошедших отчётностей</p>;
+    return (
+      <p className="text-center text-gray-500 text-sm py-10">
+        {videoOnly ? 'Нет отчётностей с видеозаписью' : 'Нет прошедших отчётностей'}
+      </p>
+    );
   }
 
   return (
@@ -179,6 +188,7 @@ function PastEarningsList({ earnings, companyByTicker }) {
 export default function Q1ReportPage() {
   const [earnings] = useFirestoreQ1Earnings();
   const [tab, setTab] = useState('history');
+  const [videoOnly, setVideoOnly] = useState(false);
   const companyByTicker = useMemo(
     () => new Map(earnings.map((e) => [e.ticker, { ticker: e.ticker, name: e.name }])),
     [earnings],
@@ -207,9 +217,11 @@ export default function Q1ReportPage() {
         ))}
       </div>
 
+      {tab === 'past' ? <VideoOnlyToggle checked={videoOnly} onChange={setVideoOnly} /> : null}
+
       <main className="flex-1">
         {tab === 'past' ? (
-          <PastEarningsList earnings={earnings} companyByTicker={companyByTicker} />
+          <PastEarningsList earnings={earnings} companyByTicker={companyByTicker} videoOnly={videoOnly} />
         ) : (
           <TradingHistoryView season="Q1-2026" />
         )}
