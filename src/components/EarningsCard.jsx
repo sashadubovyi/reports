@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { LuMoon, LuSun } from 'react-icons/lu';
-import { formatDisplayDate, formatWebinarDateTime, isUpcoming } from '../utils/dateUtils.js';
+import { WEBINAR_TIME_LABEL, formatDisplayDate, isUpcoming, isWebinarLive } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
@@ -10,20 +11,50 @@ function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
   return { text: `${sign}${prefix}${Math.abs(num)}${suffix}`, positive: num >= 0 };
 }
 
+// Ticks the card every 30s so the "16:00 МСК" -> "В ЭФИРЕ" switch happens
+// live without requiring a page reload.
+function useNow(intervalMs = 30000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+function LiveBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-emerald-600 animate-pulse">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
+      </span>
+      В ЭФИРЕ
+    </span>
+  );
+}
+
 export default function EarningsCard({ webinarDate, earnings, companyByTicker }) {
   const upcoming = isUpcoming(webinarDate) && !earnings.some((earning) => earning.webinarEnded);
   const registrationUrl = earnings.find((earning) => earning.registrationUrl)?.registrationUrl;
   const recordingUrl = earnings.find((earning) => earning.recordingUrl)?.recordingUrl;
   const hasWebinarLink = upcoming ? Boolean(registrationUrl) : Boolean(recordingUrl);
+  const now = useNow();
+  const live = upcoming && isWebinarLive(webinarDate, now);
 
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
       <div className="bg-blue-50 px-4 py-2 border-b border-gray-200">
         <h2 className="text-sm font-bold text-brand">
-          {hasWebinarLink ? (
+          {!upcoming ? (
             <>
               <span className="text-gray-500 font-normal">Дата вебинара: </span>
-              {formatWebinarDateTime(webinarDate)}
+              {formatDisplayDate(webinarDate)}
+            </>
+          ) : hasWebinarLink ? (
+            <>
+              <span className="text-gray-500 font-normal">Дата вебинара: </span>
+              {formatDisplayDate(webinarDate)}, {live ? <LiveBadge /> : WEBINAR_TIME_LABEL}
             </>
           ) : (
             formatDisplayDate(webinarDate)

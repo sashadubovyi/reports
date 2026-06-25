@@ -50,9 +50,23 @@ export function formatDisplayDate(isoDate) {
 
 // All webinars run at a fixed time, regardless of the report date.
 export const WEBINAR_TIME_LABEL = '16:00 МСК';
+const WEBINAR_START_HOUR_MSK = 16;
+const MSK_UTC_OFFSET_HOURS = 3; // MSK has been a fixed UTC+3 offset (no DST) since 2014.
 
 export function formatWebinarDateTime(isoDate) {
   return `${formatDisplayDate(isoDate)}, ${WEBINAR_TIME_LABEL}`;
+}
+
+// Webinars start at 16:00 MSK regardless of the visitor's local timezone,
+// so the comparison is done against a fixed UTC instant rather than the
+// browser's local time interpretation of "16:00".
+export function getWebinarStartTimestamp(isoDate) {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return Date.UTC(year, month - 1, day, WEBINAR_START_HOUR_MSK - MSK_UTC_OFFSET_HOURS, 0, 0);
+}
+
+export function isWebinarLive(isoDate, nowMs = Date.now()) {
+  return nowMs >= getWebinarStartTimestamp(isoDate);
 }
 
 // Past cards show only the date (full month name, no time) — the webinar
