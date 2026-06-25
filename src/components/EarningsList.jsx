@@ -9,7 +9,7 @@ function matchesSearch(earning, query, companyByTicker) {
   return company ? company.name.toLowerCase().includes(query) : false;
 }
 
-export default function EarningsList({ earnings, filter, search = '', companies }) {
+export default function EarningsList({ earnings, filter, search = '', companies, videoOnly = false }) {
   const companyByTicker = new Map(companies.map((c) => [c.ticker, c]));
   const query = search.trim().toLowerCase();
   const filtered = earnings.filter((e) => {
@@ -20,22 +20,28 @@ export default function EarningsList({ earnings, filter, search = '', companies 
     );
   });
 
-  if (filtered.length === 0) {
+  const groups = groupByWebinarDate(filtered);
+  let sortedDates = Array.from(groups.keys()).sort((a, b) =>
+    filter === 'upcoming' ? a.localeCompare(b) : b.localeCompare(a)
+  );
+
+  if (filter === 'past' && videoOnly) {
+    sortedDates = sortedDates.filter((webinarDate) => groups.get(webinarDate).some((e) => e.recordingUrl));
+  }
+
+  if (sortedDates.length === 0) {
     return (
       <p className="text-center text-gray-500 text-sm py-10">
         {query
           ? 'Ничего не найдено'
           : filter === 'upcoming'
             ? 'Нет предстоящих отчётностей'
-            : 'Нет прошедших отчётностей'}
+            : videoOnly
+              ? 'Нет отчётностей с видеозаписью'
+              : 'Нет прошедших отчётностей'}
       </p>
     );
   }
-
-  const groups = groupByWebinarDate(filtered);
-  const sortedDates = Array.from(groups.keys()).sort((a, b) =>
-    filter === 'upcoming' ? a.localeCompare(b) : b.localeCompare(a)
-  );
 
   return (
     <div className="px-4 py-4 space-y-4">
