@@ -28,6 +28,7 @@ export default function CompanyModal({ ticker, company, onClose }) {
   const domain = company?.domain;
   const logoUrl = company?.logoUrl;
   const description = company?.description;
+  const activities = company?.activities;
   const foundedYear = company?.foundedYear;
 
   const marketCap = formatMarketCap(profile?.marketCapitalization);
@@ -50,6 +51,20 @@ export default function CompanyModal({ ticker, company, onClose }) {
 
         {description ? (
           <p className="text-sm text-gray-700 leading-relaxed mb-4">{description}</p>
+        ) : null}
+
+        {activities?.length > 0 ? (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Основные направления</p>
+            <ul className="space-y-1.5">
+              {activities.map((item, i) => (
+                <li key={i} className="flex gap-2 text-xs text-gray-700 leading-relaxed">
+                  <span className="text-brand flex-shrink-0 mt-0.5">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         <div className="bg-gray-50 rounded-lg px-3 py-1">
