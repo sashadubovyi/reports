@@ -1,13 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { collection, doc, onSnapshot, writeBatch } from 'firebase/firestore';
+import { collection, doc, onSnapshot, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { COMPANIES } from '../data/companies.js';
 
 const COLLECTION = 'companies';
 const CACHE_KEY = 'cached_companies_data';
 
+// Build a map for fast lookup by ticker when patching Firestore docs.
+const SEED_BY_TICKER = new Map(COMPANIES.map((c) => [c.ticker, c]));
+
 function seedDoc(company) {
-  return { ticker: company.ticker, name: company.name, domain: company.domain || '', logoUrl: '', foundedYear: '', description: '' };
+  return {
+    ticker: company.ticker,
+    name: company.name,
+    domain: company.domain || '',
+    logoUrl: '',
+    foundedYear: company.foundedYear || '',
+    industry: company.industry || '',
+    description: company.description || '',
+  };
 }
 
 // Mirrors useFirestoreEarnings: Firestore is the shared source of truth for
@@ -25,6 +36,7 @@ export function useFirestoreCompanies() {
   const companiesRef = useRef(companies);
   companiesRef.current = companies;
   const seededRef = useRef(false);
+  const patchedRef = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -41,6 +53,30 @@ export function useFirestoreCompanies() {
           }
           return;
         }
+
+        // One-time patch: fill in description/foundedYear/industry for existing
+        // docs that are missing them (e.g. seeded before these fields existed).
+        // Only writes to docs where description is absent or empty so admin edits
+        // are never overwritten.
+        if (!patchedRef.current) {
+          patchedRef.current = true;
+          const needsPatch = snapshot.docs.filter((d) => !d.data().description);
+          if (needsPatch.length > 0) {
+            const patchPromises = needsPatch.map((d) => {
+              const seed = SEED_BY_TICKER.get(d.id);
+              if (!seed) return Promise.resolve();
+              return setDoc(
+                doc(db, COLLECTION, d.id),
+                { description: seed.description || '', foundedYear: seed.foundedYear || '', industry: seed.industry || '' },
+                { merge: true },
+              );
+            });
+            Promise.all(patchPromises).catch((err) =>
+              console.error('Не удалось дополнить данные компаний в Firestore:', err),
+            );
+          }
+        }
+
         const docs = snapshot.docs.map((d) => d.data());
         setCompaniesState(docs);
         try {
