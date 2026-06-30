@@ -60,17 +60,26 @@ export function useFirestoreCompanies() {
         // are never overwritten.
         if (!patchedRef.current) {
           patchedRef.current = true;
-          const needsPatch = snapshot.docs.filter((d) => !d.data().description);
-          if (needsPatch.length > 0) {
-            const patchPromises = needsPatch.map((d) => {
-              const seed = SEED_BY_TICKER.get(d.id);
-              if (!seed) return Promise.resolve();
-              return setDoc(
-                doc(db, COLLECTION, d.id),
-                { description: seed.description || '', foundedYear: seed.foundedYear || '', industry: seed.industry || '' },
-                { merge: true },
-              );
-            });
+          const existingTickers = new Set(snapshot.docs.map((d) => d.id));
+          const patchPromises = [
+            // Fill in description/foundedYear/industry for existing docs missing them
+            ...snapshot.docs
+              .filter((d) => !d.data().description)
+              .map((d) => {
+                const seed = SEED_BY_TICKER.get(d.id);
+                if (!seed) return Promise.resolve();
+                return setDoc(
+                  doc(db, COLLECTION, d.id),
+                  { description: seed.description || '', foundedYear: seed.foundedYear || '', industry: seed.industry || '' },
+                  { merge: true },
+                );
+              }),
+            // Seed docs for companies added to the list after the initial seeding
+            ...COMPANIES.filter((c) => !existingTickers.has(c.ticker)).map((c) =>
+              setDoc(doc(db, COLLECTION, c.ticker), seedDoc(c)),
+            ),
+          ];
+          if (patchPromises.length > 0) {
             Promise.all(patchPromises).catch((err) =>
               console.error('Не удалось дополнить данные компаний в Firestore:', err),
             );
