@@ -4,7 +4,7 @@ import { db } from '../firebase.js';
 import { COMPANIES } from '../data/companies.js';
 
 const COLLECTION = 'companies';
-const CACHE_KEY = 'cached_companies_data';
+const CACHE_KEY = 'cached_companies_data_v2';
 
 // Build a map for fast lookup by ticker when patching Firestore docs.
 const SEED_BY_TICKER = new Map(COMPANIES.map((c) => [c.ticker, c]));
@@ -18,6 +18,7 @@ function seedDoc(company) {
     foundedYear: company.foundedYear || '',
     industry: company.industry || '',
     description: company.description || '',
+    activities: company.activities || [],
   };
 }
 
@@ -62,15 +63,20 @@ export function useFirestoreCompanies() {
           patchedRef.current = true;
           const existingTickers = new Set(snapshot.docs.map((d) => d.id));
           const patchPromises = [
-            // Fill in description/foundedYear/industry for existing docs missing them
+            // Fill in missing fields for existing docs (never overwrites non-empty description)
             ...snapshot.docs
-              .filter((d) => !d.data().description)
+              .filter((d) => !d.data().description || !d.data().activities?.length)
               .map((d) => {
                 const seed = SEED_BY_TICKER.get(d.id);
                 if (!seed) return Promise.resolve();
                 return setDoc(
                   doc(db, COLLECTION, d.id),
-                  { description: seed.description || '', foundedYear: seed.foundedYear || '', industry: seed.industry || '' },
+                  {
+                    description: seed.description || '',
+                    foundedYear: seed.foundedYear || '',
+                    industry: seed.industry || '',
+                    activities: seed.activities || [],
+                  },
                   { merge: true },
                 );
               }),
@@ -101,7 +107,7 @@ export function useFirestoreCompanies() {
   }, []);
 
   const saveCompany = useCallback((company) => {
-    return writeBatch(db).set(doc(db, COLLECTION, company.ticker), company).commit();
+    return writeBatch(db).set(doc(db, COLLECTION, company.ticker), company, { merge: true }).commit();
   }, []);
 
   const deleteCompany = useCallback((ticker) => {
