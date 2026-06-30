@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 const EMPTY_FORM = {
   ticker: '',
   name: '',
+  domain: '',
   logoUrl: '',
+  foundedYear: '',
+  description: '',
   reportDate: '',
   marketTime: 'BMO',
   epsEstimate: '',
@@ -95,6 +98,28 @@ export default function AdminCompanyForm({ editingCompany, existingTickers, acti
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
         />
         <p className="text-xs text-gray-400">Если не указано, логотип подбирается автоматически по тикеру/домену.</p>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Год основания</label>
+        <input
+          type="text"
+          value={form.foundedYear}
+          onChange={(e) => update('foundedYear', e.target.value)}
+          placeholder="1976"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Описание деятельности</label>
+        <textarea
+          value={form.description}
+          onChange={(e) => update('description', e.target.value)}
+          placeholder="Краткое описание чем занимается компания..."
+          rows={3}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none"
+        />
       </div>
 
       <div className="space-y-1 border-t border-gray-100 pt-3">

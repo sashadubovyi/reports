@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { LuMoon, LuSun } from 'react-icons/lu';
 import CompanyLogo from '../components/CompanyLogo.jsx';
+import CompanyModal from '../components/CompanyModal.jsx';
 import Footer from '../components/Footer.jsx';
 import TradingHistoryView from '../components/TradingHistoryView.jsx';
 import VideoOnlyToggle from '../components/VideoOnlyToggle.jsx';
@@ -73,6 +74,7 @@ function groupByWebinarDate(earnings) {
 
 function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
   const recordingUrl = earnings.find((earning) => earning.recordingUrl)?.recordingUrl;
+  const [modalTicker, setModalTicker] = useState(null);
 
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
@@ -94,7 +96,11 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
           return (
             <div key={earning.id} className="px-4 py-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setModalTicker(earning.ticker)}
+                  className="flex items-start gap-2.5 text-left active:opacity-70"
+                >
                   <CompanyLogo domain={company?.domain} logoUrl={company?.logoUrl} ticker={earning.ticker} />
                   <div>
                     <p className="text-base font-bold text-gray-900">
@@ -103,7 +109,7 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
                     </p>
                     <p className="text-xs text-gray-500">{earning.quarter}</p>
                   </div>
-                </div>
+                </button>
                 <span
                   role="img"
                   className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
@@ -150,6 +156,14 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
             Смотреть видеозапись
           </a>
         </div>
+      ) : null}
+
+      {modalTicker ? (
+        <CompanyModal
+          ticker={modalTicker}
+          company={companyByTicker.get(modalTicker)}
+          onClose={() => setModalTicker(null)}
+        />
       ) : null}
     </div>
   );
