@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { LuMoon, LuSun } from 'react-icons/lu';
 import { WEBINAR_TIME_LABEL, formatDisplayDate, isUpcoming, isWebinarLive } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
+import CompanyModal from './CompanyModal.jsx';
 
 function formatSigned(raw, { prefix = '', suffix = '' } = {}) {
   if (raw === undefined || raw === null || raw === '') return null;
@@ -41,6 +42,7 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
   const hasWebinarLink = upcoming ? Boolean(registrationUrl) : Boolean(recordingUrl);
   const now = useNow();
   const live = upcoming && isWebinarLive(webinarDate, now);
+  const [modalTicker, setModalTicker] = useState(null);
 
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
@@ -73,7 +75,11 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
           return (
             <div key={earning.id} className="px-4 py-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setModalTicker(earning.ticker)}
+                  className="flex items-start gap-2.5 text-left active:opacity-70"
+                >
                   <CompanyLogo domain={company?.domain} logoUrl={company?.logoUrl} ticker={earning.ticker} />
                   <div>
                     <p className="text-base font-bold text-gray-900">
@@ -82,7 +88,7 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
                     </p>
                     <p className="text-xs text-gray-500">{earning.quarter}</p>
                   </div>
-                </div>
+                </button>
                 <span
                   role="img"
                   className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
@@ -140,6 +146,14 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
             Смотреть видеозапись
           </a>
         </div>
+      ) : null}
+
+      {modalTicker ? (
+        <CompanyModal
+          ticker={modalTicker}
+          company={companyByTicker.get(modalTicker)}
+          onClose={() => setModalTicker(null)}
+        />
       ) : null}
     </div>
   );

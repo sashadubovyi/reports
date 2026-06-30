@@ -7,7 +7,7 @@ const COLLECTION = 'companies';
 const CACHE_KEY = 'cached_companies_data';
 
 function seedDoc(company) {
-  return { ticker: company.ticker, name: company.name, domain: company.domain || '', logoUrl: '' };
+  return { ticker: company.ticker, name: company.name, domain: company.domain || '', logoUrl: '', foundedYear: '', description: '' };
 }
 
 // Mirrors useFirestoreEarnings: Firestore is the shared source of truth for
