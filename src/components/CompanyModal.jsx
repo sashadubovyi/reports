@@ -31,7 +31,7 @@ export default function CompanyModal({ ticker, company, onClose }) {
   const foundedYear = company?.foundedYear;
 
   const marketCap = formatMarketCap(profile?.marketCapitalization);
-  const industry = profile?.finnhubIndustry;
+  const industry = company?.industry || profile?.finnhubIndustry;
   const exchange = profile?.exchange;
   const website = profile?.weburl;
 
