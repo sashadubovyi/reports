@@ -5,6 +5,7 @@ import CompanyModal from '../components/CompanyModal.jsx';
 import Footer from '../components/Footer.jsx';
 import TradingHistoryView from '../components/TradingHistoryView.jsx';
 import VideoOnlyToggle from '../components/VideoOnlyToggle.jsx';
+import { useFirestoreCompanies } from '../hooks/useFirestoreCompanies.js';
 import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
 import { calculateWebinarDate, formatDisplayDate } from '../utils/dateUtils.js';
 import { openOfficialSite } from '../utils/smartRedirect.js';
@@ -201,12 +202,17 @@ function PastEarningsList({ earnings, companyByTicker, videoOnly }) {
 
 export default function Q1ReportPage() {
   const [earnings] = useFirestoreQ1Earnings();
+  const { companies } = useFirestoreCompanies();
   const [tab, setTab] = useState('history');
   const [videoOnly, setVideoOnly] = useState(false);
-  const companyByTicker = useMemo(
-    () => new Map(earnings.map((e) => [e.ticker, { ticker: e.ticker, name: e.name }])),
-    [earnings],
-  );
+  const companyByTicker = useMemo(() => {
+    const map = new Map(companies.map((c) => [c.ticker, c]));
+    // Fall back to name from earnings for any ticker not yet in the companies collection
+    earnings.forEach((e) => {
+      if (!map.has(e.ticker)) map.set(e.ticker, { ticker: e.ticker, name: e.name });
+    });
+    return map;
+  }, [companies, earnings]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
