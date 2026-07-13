@@ -2,6 +2,7 @@ import { LuExternalLink } from 'react-icons/lu';
 import { useCompanyProfile } from '../hooks/useCompanyProfile.js';
 import CompanyLogo from './CompanyLogo.jsx';
 import Modal from './Modal.jsx';
+import TradingViewTape from './TradingViewTape.jsx';
 
 // Finnhub returns marketCapitalization in millions USD.
 function formatMarketCap(millionsUSD) {
@@ -48,6 +49,8 @@ export default function CompanyModal({ ticker, company, onClose }) {
             <p className="text-xs text-gray-500 font-mono">{ticker}</p>
           </div>
         </div>
+
+        <TradingViewTape />
 
         {description ? (
           <p className="text-sm text-gray-700 leading-relaxed mb-4">{description}</p>
