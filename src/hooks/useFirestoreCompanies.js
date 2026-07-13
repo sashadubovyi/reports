@@ -4,7 +4,7 @@ import { db } from '../firebase.js';
 import { COMPANIES } from '../data/companies.js';
 
 const COLLECTION = 'companies';
-const CACHE_KEY = 'cached_companies_data_v2';
+const CACHE_KEY = 'cached_companies_data_v3';
 
 // Build a map for fast lookup by ticker when patching Firestore docs.
 const SEED_BY_TICKER = new Map(COMPANIES.map((c) => [c.ticker, c]));
@@ -14,6 +14,7 @@ function seedDoc(company) {
     ticker: company.ticker,
     name: company.name,
     domain: company.domain || '',
+    tvSymbol: company.tvSymbol || '',
     logoUrl: '',
     foundedYear: company.foundedYear || '',
     industry: company.industry || '',
@@ -65,7 +66,15 @@ export function useFirestoreCompanies() {
           const patchPromises = [
             // Fill in missing fields for existing docs (never overwrites non-empty description)
             ...snapshot.docs
-              .filter((d) => !d.data().description || !d.data().activities?.length)
+              .filter((d) => {
+                const data = d.data();
+                const seed = SEED_BY_TICKER.get(d.id);
+                return (
+                  !data.description ||
+                  !data.activities?.length ||
+                  (seed?.tvSymbol && !data.tvSymbol)
+                );
+              })
               .map((d) => {
                 const seed = SEED_BY_TICKER.get(d.id);
                 if (!seed) return Promise.resolve();
@@ -76,6 +85,7 @@ export function useFirestoreCompanies() {
                     foundedYear: seed.foundedYear || '',
                     industry: seed.industry || '',
                     activities: seed.activities || [],
+                    tvSymbol: seed.tvSymbol || '',
                   },
                   { merge: true },
                 );
