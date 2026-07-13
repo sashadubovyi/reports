@@ -50,7 +50,7 @@ export default function CompanyModal({ ticker, company, onClose }) {
           </div>
         </div>
 
-        <TradingViewTape />
+        <TradingViewTape symbols={company?.tvSymbol || ticker} />
 
         {description ? (
           <p className="text-sm text-gray-700 leading-relaxed mb-4">{description}</p>
