@@ -20,15 +20,28 @@ export default function MissedProfitCalculator({ points }) {
   const [animating, setAnimating] = useState(false);
   const rafRef = useRef(0);
 
-  // Per-webinar returns in chronological order. Withdrawal points carry the
-  // cumulative % for the payout period, not a webinar result — skip them.
-  const returns = useMemo(() => {
+  // Per-webinar growth factors in chronological order. Withdrawal points
+  // carry the cumulative % for the payout period, not a webinar result —
+  // skip them. Each factor is derived from the exact dollar amounts
+  // (balance after / balance before) rather than the manually entered
+  // profitPercent, which is rounded to two decimals and would drift from
+  // the real account balance when compounded. Falls back to profitPercent
+  // for points without usable dollar figures.
+  const growthFactors = useMemo(() => {
     const sorted = [...points].sort((a, b) =>
       a.date === b.date ? a.id.localeCompare(b.id) : a.date.localeCompare(b.date),
     );
     return sorted
       .filter((p) => p.type !== 'withdrawal')
-      .map((p) => Number(p.profitPercent) || 0);
+      .map((p) => {
+        const dollar = Number(p.profitDollar);
+        const balance = Number(p.balance);
+        if (Number.isFinite(dollar) && Number.isFinite(balance) && balance - dollar > 0) {
+          return balance / (balance - dollar);
+        }
+        const pct = Number(p.profitPercent);
+        return Number.isFinite(pct) ? 1 + pct / 100 : 1;
+      });
   }, [points]);
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
@@ -42,8 +55,8 @@ export default function MissedProfitCalculator({ points }) {
     }
     setError('');
 
-    // Compound each webinar's % on top of the running balance.
-    const final = returns.reduce((balance, pct) => balance * (1 + pct / 100), amount);
+    // Compound each webinar's growth on top of the running balance.
+    const final = growthFactors.reduce((balance, factor) => balance * factor, amount);
 
     setStartAmount(amount);
     setFinalValue(final);
@@ -75,7 +88,7 @@ export default function MissedProfitCalculator({ points }) {
         Какой баланс вы бы имели, если бы вложили в начале квартальной отчётности:
       </p>
 
-      {returns.length === 0 ? (
+      {growthFactors.length === 0 ? (
         <p className="text-center text-gray-500 text-sm py-6">Торговая история пока не заполнена</p>
       ) : (
         <>
