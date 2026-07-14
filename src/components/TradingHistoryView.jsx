@@ -246,12 +246,14 @@ function TransactionsList({ points, activeIndex, onSelect }) {
 export default function TradingHistoryView({ season }) {
   const [rawPoints] = useFirestoreTradingHistory(season);
   const points = useMemo(() => buildEquityCurvePoints(rawPoints), [rawPoints]);
-  const [activeIndex, setActiveIndex] = useState(0);
+  // The latest endpoint is selected by default (and re-selected whenever a
+  // point is added/removed), so visitors land on the most recent result.
+  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, points.length - 1));
   const [calcOpen, setCalcOpen] = useState(false);
 
   useEffect(() => {
-    if (activeIndex >= points.length) setActiveIndex(Math.max(0, points.length - 1));
-  }, [points.length, activeIndex]);
+    setActiveIndex(Math.max(0, points.length - 1));
+  }, [points.length]);
 
   if (points.length === 0) {
     return <p className="text-center text-gray-500 text-sm py-10">Торговая история пока не заполнена</p>;
