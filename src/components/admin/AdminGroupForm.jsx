@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LuSunrise, LuSunset, LuTrash2 } from 'react-icons/lu';
-import { calculateWebinarDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
+import { DEFAULT_WEBINAR_TIME, calculateWebinarDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
 import { getGroupSharedFields } from '../../utils/groupEarnings.js';
 
 function rowFromEarning(earning) {
@@ -18,6 +18,7 @@ function rowFromEarning(earning) {
 
 export default function AdminGroupForm({ groupEarnings, companies, onSave, onCancel }) {
   const [reportDate, setReportDate] = useState('');
+  const [webinarTime, setWebinarTime] = useState(DEFAULT_WEBINAR_TIME);
   const [registrationUrl, setRegistrationUrl] = useState('');
   const [recordingUrl, setRecordingUrl] = useState('');
   const [webinarEnded, setWebinarEnded] = useState(false);
@@ -30,6 +31,7 @@ export default function AdminGroupForm({ groupEarnings, companies, onSave, onCan
     setRegistrationUrl(shared.registrationUrl);
     setRecordingUrl(shared.recordingUrl);
     setWebinarEnded(shared.webinarEnded);
+    setWebinarTime(shared.webinarTime || DEFAULT_WEBINAR_TIME);
     setRows(groupEarnings.map(rowFromEarning));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupEarnings]);
@@ -71,6 +73,7 @@ export default function AdminGroupForm({ groupEarnings, companies, onSave, onCan
       registrationUrl,
       recordingUrl,
       webinarEnded,
+      webinarTime: webinarTime || DEFAULT_WEBINAR_TIME,
     }));
     onSave(updated);
   }
@@ -96,9 +99,20 @@ export default function AdminGroupForm({ groupEarnings, companies, onSave, onCan
         />
         {webinarPreview ? (
           <p className="text-xs text-gray-500">
-            Дата вебинара (расчёт): <span className="font-semibold text-brand">{formatWebinarDateTime(webinarPreview)}</span>
+            Дата вебинара (расчёт):{' '}
+            <span className="font-semibold text-brand">{formatWebinarDateTime(webinarPreview, webinarTime)}</span>
           </p>
         ) : null}
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Время вебинара, МСК (по умолчанию {DEFAULT_WEBINAR_TIME})</label>
+        <input
+          type="time"
+          value={webinarTime}
+          onChange={(e) => setWebinarTime(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
       </div>
 
       <div className="space-y-1">

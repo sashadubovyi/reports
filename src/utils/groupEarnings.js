@@ -31,6 +31,7 @@ export function getGroupSharedFields(groupEarnings) {
     registrationUrl: groupEarnings.find((e) => e.registrationUrl)?.registrationUrl || '',
     recordingUrl: groupEarnings.find((e) => e.recordingUrl)?.recordingUrl || '',
     webinarEnded: groupEarnings.some((e) => e.webinarEnded),
+    webinarTime: groupEarnings.find((e) => e.webinarTime)?.webinarTime || '',
   };
 }
 

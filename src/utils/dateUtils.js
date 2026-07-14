@@ -48,25 +48,38 @@ export function formatDisplayDate(isoDate) {
   });
 }
 
-// All webinars run at a fixed time, regardless of the report date.
-export const WEBINAR_TIME_LABEL = '16:00 МСК';
-const WEBINAR_START_HOUR_MSK = 16;
+// Webinars default to 16:00 MSK; individual cards may override the time
+// via the optional webinarTime field ("HH:MM"), edited in the admin group
+// form. Every helper below falls back to the default when no override is
+// stored, so existing cards keep working unchanged.
+export const DEFAULT_WEBINAR_TIME = '16:00';
 const MSK_UTC_OFFSET_HOURS = 3; // MSK has been a fixed UTC+3 offset (no DST) since 2014.
 
-export function formatWebinarDateTime(isoDate) {
-  return `${formatDisplayDate(isoDate)}, ${WEBINAR_TIME_LABEL}`;
+function parseWebinarTime(time) {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time || '');
+  if (!match) return { hour: 16, minute: 0 };
+  return { hour: Number(match[1]), minute: Number(match[2]) };
 }
 
-// Webinars start at 16:00 MSK regardless of the visitor's local timezone,
-// so the comparison is done against a fixed UTC instant rather than the
-// browser's local time interpretation of "16:00".
-export function getWebinarStartTimestamp(isoDate) {
+export function formatWebinarTimeLabel(time) {
+  return `${time || DEFAULT_WEBINAR_TIME} МСК`;
+}
+
+export function formatWebinarDateTime(isoDate, time) {
+  return `${formatDisplayDate(isoDate)}, ${formatWebinarTimeLabel(time)}`;
+}
+
+// Webinars start at a fixed MSK time regardless of the visitor's local
+// timezone, so the comparison is done against a fixed UTC instant rather
+// than the browser's local time interpretation of that wall-clock time.
+export function getWebinarStartTimestamp(isoDate, time) {
   const [year, month, day] = isoDate.split('-').map(Number);
-  return Date.UTC(year, month - 1, day, WEBINAR_START_HOUR_MSK - MSK_UTC_OFFSET_HOURS, 0, 0);
+  const { hour, minute } = parseWebinarTime(time);
+  return Date.UTC(year, month - 1, day, hour - MSK_UTC_OFFSET_HOURS, minute, 0);
 }
 
-export function isWebinarLive(isoDate, nowMs = Date.now()) {
-  return nowMs >= getWebinarStartTimestamp(isoDate);
+export function isWebinarLive(isoDate, nowMs = Date.now(), time) {
+  return nowMs >= getWebinarStartTimestamp(isoDate, time);
 }
 
 // Past cards show only the date (full month name, no time) — the webinar
