@@ -14,6 +14,36 @@ function formatMoney(value) {
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// SVG <text> doesn't wrap on its own, so long tooltip lines (admin-written
+// notes/labels) are split into word-wrapped chunks; overlong words are
+// hard-split so nothing can escape the tooltip box.
+function wrapLine(text, maxChars) {
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+  words.forEach((word) => {
+    let w = word;
+    while (w.length > maxChars) {
+      if (current) {
+        lines.push(current);
+        current = '';
+      }
+      lines.push(w.slice(0, maxChars));
+      w = w.slice(maxChars);
+    }
+    if (!current) {
+      current = w;
+    } else if (`${current} ${w}`.length > maxChars) {
+      lines.push(current);
+      current = w;
+    } else {
+      current = `${current} ${w}`;
+    }
+  });
+  if (current) lines.push(current);
+  return lines;
+}
+
 function formatStepperLabel(point) {
   const amount = `+$${formatMoney(point.profitDollar)} (+${point.profitPercent}%)`;
   return point.label ? `${point.fullDate} • ${amount} • ${point.label.toUpperCase()}` : `${point.fullDate} • ${amount}`;
@@ -43,13 +73,16 @@ function EquityCurveChart({ points, activeIndex, onSelect }) {
   const areaPath = `${linePath} L ${x(points.length - 1)},${bottomY} L ${x(0)},${bottomY} Z`;
 
   const active = points[displayIndex];
-  const tooltipLines = [
-    active.dateLabel,
-    `Прибыль: +${active.profitPercent}% / +$${formatMoney(active.profitDollar)}`,
-    `Баланс: $${formatMoney(active.balance)}`,
-    ...(active.label ? [active.label] : []),
-    ...(active.note ? [active.note] : []),
+  const rawTooltipLines = [
+    { text: active.dateLabel, kind: 'date' },
+    { text: `Прибыль: +${active.profitPercent}% / +$${formatMoney(active.profitDollar)}`, kind: 'info' },
+    { text: `Баланс: $${formatMoney(active.balance)}`, kind: 'balance' },
+    ...(active.label ? [{ text: active.label, kind: 'info' }] : []),
+    ...(active.note ? [{ text: active.note, kind: 'info' }] : []),
   ];
+  const tooltipLines = rawTooltipLines.flatMap((line) =>
+    wrapLine(line.text, 27).map((text) => ({ text, kind: line.kind })),
+  );
   const tooltipWidth = 180;
   const tooltipHeight = 16 + tooltipLines.length * 16;
 
@@ -135,11 +168,11 @@ function EquityCurveChart({ points, activeIndex, onSelect }) {
                   key={idx}
                   x={tx + 10}
                   y={ty + 18 + idx * 16}
-                  fontSize={idx === 0 ? '11' : '10.5'}
-                  fontWeight={idx === 0 ? '700' : idx === 2 ? '700' : '400'}
-                  fill={idx === 2 ? '#34d399' : idx === 0 ? '#ffffff' : '#cbd5e1'}
+                  fontSize={line.kind === 'date' ? '11' : '10.5'}
+                  fontWeight={line.kind === 'date' || line.kind === 'balance' ? '700' : '400'}
+                  fill={line.kind === 'balance' ? '#34d399' : line.kind === 'date' ? '#ffffff' : '#cbd5e1'}
                 >
-                  {line}
+                  {line.text}
                 </text>
               ))}
             </g>
