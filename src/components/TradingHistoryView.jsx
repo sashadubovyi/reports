@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFirestoreTradingHistory } from '../hooks/useFirestoreTradingHistory.js';
 import { buildEquityCurvePoints } from '../utils/equityCurve.js';
+import MissedProfitCalculator from './MissedProfitCalculator.jsx';
+import Modal from './Modal.jsx';
 
 const POINT_GAP = 100;
 const PADDING_X = 50;
@@ -212,6 +214,7 @@ export default function TradingHistoryView({ season }) {
   const [rawPoints] = useFirestoreTradingHistory(season);
   const points = useMemo(() => buildEquityCurvePoints(rawPoints), [rawPoints]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [calcOpen, setCalcOpen] = useState(false);
 
   useEffect(() => {
     if (activeIndex >= points.length) setActiveIndex(Math.max(0, points.length - 1));
@@ -235,6 +238,18 @@ export default function TradingHistoryView({ season }) {
         Прошлые результаты не гарантируют будущую доходность. Наведите курсор, нажмите на точку графика или
         используйте стрелки, чтобы увидеть детали.
       </p>
+
+      <button
+        type="button"
+        onClick={() => setCalcOpen(true)}
+        className="w-full bg-brand text-white font-semibold rounded-md py-3 text-sm active:opacity-90"
+      >
+        Рассчитать упущенную прибыль
+      </button>
+
+      <Modal open={calcOpen} onClose={() => setCalcOpen(false)}>
+        <MissedProfitCalculator points={rawPoints} />
+      </Modal>
     </div>
   );
 }

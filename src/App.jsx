@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import LandingPage from './pages/LandingPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import Q1ReportPage from './pages/Q1ReportPage.jsx';
-import MissedProfitPage from './pages/MissedProfitPage.jsx';
 import { useFirestoreEarnings } from './hooks/useFirestoreEarnings.js';
 import { useFirestoreCompanies } from './hooks/useFirestoreCompanies.js';
 import { INITIAL_EARNINGS } from './data/initialEarnings.js';
@@ -13,7 +12,6 @@ function getPageFromLocation() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('page') === 'admin') return 'admin';
   if (window.location.pathname === '/q1report') return 'q1report';
-  if (window.location.pathname === '/test') return 'missedprofit';
   return 'landing';
 }
 
@@ -49,10 +47,6 @@ export default function App() {
 
   if (page === 'q1report') {
     return <Q1ReportPage />;
-  }
-
-  if (page === 'missedprofit') {
-    return <MissedProfitPage />;
   }
 
   if (page === 'admin') {
