@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LuMoon, LuSun } from 'react-icons/lu';
-import { WEBINAR_TIME_LABEL, formatDisplayDate, isUpcoming, isWebinarLive } from '../utils/dateUtils.js';
+import { formatDisplayDate, formatWebinarTimeLabel, isUpcoming, isWebinarLive } from '../utils/dateUtils.js';
 import CompanyLogo from './CompanyLogo.jsx';
 import CompanyModal from './CompanyModal.jsx';
 
@@ -40,8 +40,9 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
   const registrationUrl = earnings.find((earning) => earning.registrationUrl)?.registrationUrl;
   const recordingUrl = earnings.find((earning) => earning.recordingUrl)?.recordingUrl;
   const hasWebinarLink = upcoming ? Boolean(registrationUrl) : Boolean(recordingUrl);
+  const webinarTime = earnings.find((earning) => earning.webinarTime)?.webinarTime;
   const now = useNow();
-  const live = upcoming && isWebinarLive(webinarDate, now);
+  const live = upcoming && isWebinarLive(webinarDate, now, webinarTime);
   const [modalTicker, setModalTicker] = useState(null);
 
   return (
@@ -56,7 +57,7 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
           ) : hasWebinarLink ? (
             <>
               <span className="text-gray-500 font-normal">Дата вебинара: </span>
-              {formatDisplayDate(webinarDate)}, {live ? <LiveBadge /> : WEBINAR_TIME_LABEL}
+              {formatDisplayDate(webinarDate)}, {live ? <LiveBadge /> : formatWebinarTimeLabel(webinarTime)}
             </>
           ) : (
             formatDisplayDate(webinarDate)
