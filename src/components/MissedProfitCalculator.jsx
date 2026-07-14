@@ -48,7 +48,10 @@ export default function MissedProfitCalculator({ points }) {
 
   function handleCalculate(e) {
     e.preventDefault();
-    const amount = Number(String(amountInput).replace(/[\s,]/g, ''));
+    // Comma is treated as a decimal separator (Russian input habit), then any
+    // fractional value — typed or pasted — is rounded to the nearest dollar.
+    const parsed = Number(String(amountInput).replace(/\s/g, '').replace(',', '.'));
+    const amount = Math.round(parsed);
     if (!Number.isFinite(amount) || amount < MIN_AMOUNT) {
       setError(`Минимальная сумма — $${MIN_AMOUNT.toLocaleString('en-US')}`);
       return;
@@ -92,7 +95,7 @@ export default function MissedProfitCalculator({ points }) {
         <p className="text-center text-gray-500 text-sm py-6">Торговая история пока не заполнена</p>
       ) : (
         <>
-          <form onSubmit={handleCalculate} className="space-y-3">
+          <form onSubmit={handleCalculate} noValidate className="space-y-3">
             <div>
               <label htmlFor="missed-profit-amount" className="block text-xs font-semibold text-gray-500 mb-1">
                 Сумма вложения, $
@@ -104,8 +107,11 @@ export default function MissedProfitCalculator({ points }) {
                   type="number"
                   inputMode="numeric"
                   min={MIN_AMOUNT}
-                  step="1000"
+                  step="1"
                   value={amountInput}
+                  onKeyDown={(e) => {
+                    if (['.', ',', 'e', 'E'].includes(e.key)) e.preventDefault();
+                  }}
                   onChange={(e) => setAmountInput(e.target.value)}
                   className="w-full border border-gray-300 rounded-md pl-7 pr-3 py-2.5 text-base font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
                 />
