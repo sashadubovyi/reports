@@ -102,11 +102,11 @@ export default function EarningsCard({ webinarDate, earnings, companyByTicker })
 
               <div className="flex text-sm">
                 <div className="flex-1 space-y-1">
-                  <p className="text-gray-500 text-xs">EPS (прогноз)</p>
+                  <p className="text-gray-500 text-xs">{upcoming ? 'EPS (прогноз)' : 'EPS'}</p>
                   <p className="font-semibold text-gray-800">{earning.epsEstimate || '—'}</p>
                 </div>
                 <div className="flex-1 space-y-1">
-                  <p className="text-gray-500 text-xs">Выручка (прогноз)</p>
+                  <p className="text-gray-500 text-xs">{upcoming ? 'Выручка (прогноз)' : 'Выручка'}</p>
                   <p className="font-semibold text-gray-800">{earning.revenueEstimate || '—'}</p>
                 </div>
                 {!upcoming && gap ? (
