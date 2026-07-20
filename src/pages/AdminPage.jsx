@@ -108,10 +108,18 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
     setFormMode('editGroup');
   }
 
+  // When a report-date group spans two webinars (BMO same day + AMC next
+  // trading day), the quick toggle only affects the group's own-day webinar —
+  // AMC members belong to the next day's card, which ends on its own.
   function handleToggleWebinarEnded(reportDate) {
     setActiveEarnings((prev) => {
-      const isEnded = prev.some((e) => e.reportDate === reportDate && e.webinarEnded);
-      return prev.map((e) => (e.reportDate === reportDate ? { ...e, webinarEnded: !isEnded } : e));
+      const group = prev.filter((e) => e.reportDate === reportDate);
+      const webinarDates = new Set(group.map((e) => calculateWebinarDate(e.reportDate, e.marketTiming)));
+      const affects = (e) =>
+        e.reportDate === reportDate &&
+        (webinarDates.size === 1 || calculateWebinarDate(e.reportDate, e.marketTiming) === reportDate);
+      const isEnded = prev.some((e) => affects(e) && e.webinarEnded);
+      return prev.map((e) => (affects(e) ? { ...e, webinarEnded: !isEnded } : e));
     });
   }
 
@@ -177,6 +185,7 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
         registrationUrl: shared.registrationUrl,
         recordingUrl: shared.recordingUrl,
         webinarEnded: shared.webinarEnded,
+        webinarTime: shared.webinarTime,
       };
       return previousEarning
         ? prev.map((e) => (e.id === previousEarning.id ? movedEntry : e))
