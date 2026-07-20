@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { LuSunrise, LuSunset } from 'react-icons/lu';
-import { calculateWebinarDate, formatDisplayDate, formatWebinarDateTime } from '../../utils/dateUtils.js';
-import { groupByReportDate, getGroupSharedFields } from '../../utils/groupEarnings.js';
+import { calculateReportDate, formatDisplayDate } from '../../utils/dateUtils.js';
+import { groupByWebinarDate, getGroupSharedFields } from '../../utils/groupEarnings.js';
 
+// Group selection is by WEBINAR date (same as the site's cards); the new
+// member's stored reportDate derives from that date and its BMO/AMC timing.
 export default function AdminAddToGroupForm({ earnings, companies, onSave, onCancel }) {
-  const groups = groupByReportDate(earnings);
+  const groups = groupByWebinarDate(earnings);
   const sortedDates = Array.from(groups.keys()).sort((a, b) => b.localeCompare(a));
 
-  const [reportDate, setReportDate] = useState(sortedDates[0] || '');
+  const [webinarDate, setWebinarDate] = useState(sortedDates[0] || '');
   const [ticker, setTicker] = useState('');
   const [quarter, setQuarter] = useState('');
   const [marketTiming, setMarketTiming] = useState('BMO');
   const [epsEstimate, setEpsEstimate] = useState('');
   const [revenueEstimate, setRevenueEstimate] = useState('');
 
-  const groupEarnings = groups.get(reportDate) || [];
+  const groupEarnings = groups.get(webinarDate) || [];
   const availableCompanies = companies.filter((c) => !groupEarnings.some((e) => e.ticker === c.ticker));
-  const { registrationUrl, recordingUrl, webinarEnded } = getGroupSharedFields(groupEarnings);
-  const webinarPreview = reportDate ? calculateWebinarDate(reportDate, marketTiming) : null;
+  const { registrationUrl, recordingUrl, webinarEnded, webinarTime } = getGroupSharedFields(groupEarnings);
+  const reportDatePreview = webinarDate ? calculateReportDate(webinarDate, marketTiming) : null;
 
   if (sortedDates.length === 0) {
     return (
@@ -36,12 +38,12 @@ export default function AdminAddToGroupForm({ earnings, companies, onSave, onCan
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!reportDate || !ticker || !quarter) return;
+    if (!webinarDate || !ticker || !quarter) return;
     onSave({
       id: `e-${Date.now()}`,
       ticker,
       quarter,
-      reportDate,
+      reportDate: calculateReportDate(webinarDate, marketTiming),
       marketTiming,
       epsEstimate,
       revenueEstimate,
@@ -50,6 +52,7 @@ export default function AdminAddToGroupForm({ earnings, companies, onSave, onCan
       registrationUrl,
       recordingUrl,
       webinarEnded,
+      webinarTime,
     });
   }
 
@@ -58,11 +61,11 @@ export default function AdminAddToGroupForm({ earnings, companies, onSave, onCan
       <h3 className="font-bold text-gray-900">Добавить в существующую группу</h3>
 
       <div className="space-y-1">
-        <label className="text-xs text-gray-500">Группа (дата отчёта)</label>
+        <label className="text-xs text-gray-500">Группа (дата вебинара)</label>
         <select
-          value={reportDate}
+          value={webinarDate}
           onChange={(e) => {
-            setReportDate(e.target.value);
+            setWebinarDate(e.target.value);
             setTicker('');
           }}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -131,9 +134,9 @@ export default function AdminAddToGroupForm({ earnings, companies, onSave, onCan
             </span>
           </label>
         </div>
-        {webinarPreview ? (
+        {reportDatePreview ? (
           <p className="text-xs text-gray-500">
-            Дата вебинара (расчёт): <span className="font-semibold text-brand">{formatWebinarDateTime(webinarPreview)}</span>
+            Дата отчёта (расчёт): <span className="font-semibold text-brand">{formatDisplayDate(reportDatePreview)}</span>
           </p>
         ) : null}
       </div>

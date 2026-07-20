@@ -39,6 +39,25 @@ export function calculateWebinarDate(reportDate, marketTiming) {
   return reportDate;
 }
 
+export function getPreviousTradingDay(isoDate) {
+  const date = parseISODate(isoDate);
+  date.setDate(date.getDate() - 1);
+  while (isWeekend(date)) {
+    date.setDate(date.getDate() - 1);
+  }
+  return toISODate(date);
+}
+
+// Inverse of calculateWebinarDate: the report date a card must store so its
+// webinar lands on the given webinar date (Monday webinar + AMC -> Friday
+// report). Lets the admin edit groups by webinar date, as shown on the site.
+export function calculateReportDate(webinarDate, marketTiming) {
+  if (marketTiming === 'AMC') {
+    return getPreviousTradingDay(webinarDate);
+  }
+  return webinarDate;
+}
+
 export function formatDisplayDate(isoDate) {
   const date = parseISODate(isoDate);
   return date.toLocaleDateString('ru-RU', {

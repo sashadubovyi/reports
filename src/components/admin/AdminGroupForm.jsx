@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { LuSunrise, LuSunset, LuTrash2 } from 'react-icons/lu';
-import { DEFAULT_WEBINAR_TIME, calculateWebinarDate, formatDisplayDate } from '../../utils/dateUtils.js';
+import {
+  DEFAULT_WEBINAR_TIME,
+  calculateReportDate,
+  calculateWebinarDate,
+  formatDisplayDate,
+} from '../../utils/dateUtils.js';
 import { getGroupSharedFields } from '../../utils/groupEarnings.js';
 
 function rowFromEarning(earning) {
@@ -16,53 +21,30 @@ function rowFromEarning(earning) {
   };
 }
 
-const EMPTY_SHARED = {
-  registrationUrl: '',
-  recordingUrl: '',
-  webinarEnded: false,
-  webinarTime: DEFAULT_WEBINAR_TIME,
-};
-
-// A report-date group can span TWO webinars: BMO members present the same
-// day, AMC members roll over to the next trading day and join that day's
-// card on the site. Links/time/ended are therefore edited PER webinar date
-// (one section per date) and saved only onto that date's members — so a
-// registration link given to the 21.07 webinar can never leak onto the
-// 22.07 card via an AMC member.
+// Groups are edited by WEBINAR date — the same grouping the site shows — so
+// links/time/ended always apply to exactly one on-screen card. Each member's
+// stored reportDate is derived back from the webinar date and its BMO/AMC
+// timing on save (AMC members report the previous trading day).
 export default function AdminGroupForm({ groupEarnings, companies, onSave, onCancel }) {
-  const [reportDate, setReportDate] = useState('');
-  const [sharedByDate, setSharedByDate] = useState({});
+  const [webinarDate, setWebinarDate] = useState('');
+  const [webinarTime, setWebinarTime] = useState(DEFAULT_WEBINAR_TIME);
+  const [registrationUrl, setRegistrationUrl] = useState('');
+  const [recordingUrl, setRecordingUrl] = useState('');
+  const [webinarEnded, setWebinarEnded] = useState(false);
   const [rows, setRows] = useState([]);
   const [addTicker, setAddTicker] = useState('');
 
   useEffect(() => {
-    setReportDate(groupEarnings[0]?.reportDate || '');
-    const byDate = {};
-    groupEarnings.forEach((e) => {
-      const webinarDate = calculateWebinarDate(e.reportDate, e.marketTiming);
-      if (!byDate[webinarDate]) {
-        const members = groupEarnings.filter(
-          (g) => calculateWebinarDate(g.reportDate, g.marketTiming) === webinarDate,
-        );
-        const shared = getGroupSharedFields(members);
-        byDate[webinarDate] = { ...shared, webinarTime: shared.webinarTime || DEFAULT_WEBINAR_TIME };
-      }
-    });
-    setSharedByDate(byDate);
+    const first = groupEarnings[0];
+    setWebinarDate(first ? calculateWebinarDate(first.reportDate, first.marketTiming) : '');
+    const shared = getGroupSharedFields(groupEarnings);
+    setRegistrationUrl(shared.registrationUrl);
+    setRecordingUrl(shared.recordingUrl);
+    setWebinarEnded(shared.webinarEnded);
+    setWebinarTime(shared.webinarTime || DEFAULT_WEBINAR_TIME);
     setRows(groupEarnings.map(rowFromEarning));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupEarnings]);
-
-  function getShared(webinarDate) {
-    return sharedByDate[webinarDate] || EMPTY_SHARED;
-  }
-
-  function updateShared(webinarDate, field, value) {
-    setSharedByDate((prev) => ({
-      ...prev,
-      [webinarDate]: { ...(prev[webinarDate] || EMPTY_SHARED), [field]: value },
-    }));
-  }
 
   const availableCompanies = companies.filter((c) => !rows.some((r) => r.ticker === c.ticker));
 
@@ -94,112 +76,81 @@ export default function AdminGroupForm({ groupEarnings, companies, onSave, onCan
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!reportDate || rows.length === 0 || rows.some((r) => !r.quarter)) return;
-    const updated = rows.map((row) => {
-      const shared = getShared(calculateWebinarDate(reportDate, row.marketTiming));
-      return {
-        ...row,
-        reportDate,
-        registrationUrl: shared.registrationUrl,
-        recordingUrl: shared.recordingUrl,
-        webinarEnded: shared.webinarEnded,
-        webinarTime: shared.webinarTime || DEFAULT_WEBINAR_TIME,
-      };
-    });
+    if (!webinarDate || rows.length === 0 || rows.some((r) => !r.quarter)) return;
+    const updated = rows.map((row) => ({
+      ...row,
+      reportDate: calculateReportDate(webinarDate, row.marketTiming),
+      registrationUrl,
+      recordingUrl,
+      webinarEnded,
+      webinarTime: webinarTime || DEFAULT_WEBINAR_TIME,
+    }));
     onSave(updated);
   }
-
-  // One section per distinct webinar date among the current rows.
-  const sectionMap = new Map();
-  if (reportDate) {
-    rows.forEach((row) => {
-      const webinarDate = calculateWebinarDate(reportDate, row.marketTiming);
-      const list = sectionMap.get(webinarDate) || [];
-      list.push(row);
-      sectionMap.set(webinarDate, list);
-    });
-  }
-  const sectionDates = [...sectionMap.keys()].sort();
 
   return (
     <form onSubmit={handleSubmit} className="p-4 pr-10 space-y-4">
       <h3 className="font-bold text-gray-900">Редактировать группу вебинара</h3>
 
       <div className="space-y-1">
-        <label className="text-xs text-gray-500">Дата отчёта (общая для группы)</label>
+        <label className="text-xs text-gray-500">Дата вебинара (общая для группы)</label>
         <input
           type="date"
-          value={reportDate}
-          onChange={(e) => setReportDate(e.target.value)}
+          value={webinarDate}
+          onChange={(e) => setWebinarDate(e.target.value)}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
         />
       </div>
 
-      {sectionDates.map((webinarDate) => {
-        const shared = getShared(webinarDate);
-        const tickers = sectionMap.get(webinarDate).map((r) => r.ticker).join(', ');
-        const multi = sectionDates.length > 1;
-        return (
-          <div
-            key={webinarDate}
-            className={multi ? 'border border-blue-200 bg-blue-50/50 rounded-md p-3 space-y-3' : 'space-y-3'}
-          >
-            <p className="text-xs font-semibold text-brand">
-              Вебинар {formatDisplayDate(webinarDate)}
-              {multi ? ` — ${tickers}` : ''}
-            </p>
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Время вебинара, МСК (по умолчанию {DEFAULT_WEBINAR_TIME})</label>
+        <input
+          type="time"
+          value={webinarTime}
+          onChange={(e) => setWebinarTime(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+      </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-gray-500">Время вебинара, МСК (по умолчанию {DEFAULT_WEBINAR_TIME})</label>
-              <input
-                type="time"
-                value={shared.webinarTime}
-                onChange={(e) => updateShared(webinarDate, 'webinarTime', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
-            </div>
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Ссылка на регистрацию (вебинар, общая для группы)</label>
+        <input
+          type="url"
+          value={registrationUrl}
+          onChange={(e) => setRegistrationUrl(e.target.value)}
+          placeholder="https://..."
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+      </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-gray-500">Ссылка на регистрацию (вебинар)</label>
-              <input
-                type="url"
-                value={shared.registrationUrl}
-                onChange={(e) => updateShared(webinarDate, 'registrationUrl', e.target.value)}
-                placeholder="https://..."
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
-            </div>
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">Ссылка на видеозапись (общая для группы)</label>
+        <input
+          type="url"
+          value={recordingUrl}
+          onChange={(e) => setRecordingUrl(e.target.value)}
+          placeholder="https://..."
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        />
+      </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-gray-500">Ссылка на видеозапись</label>
-              <input
-                type="url"
-                value={shared.recordingUrl}
-                onChange={(e) => updateShared(webinarDate, 'recordingUrl', e.target.value)}
-                placeholder="https://..."
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={`webinarEnded-${webinarDate}`}
-                checked={shared.webinarEnded}
-                onChange={(e) => updateShared(webinarDate, 'webinarEnded', e.target.checked)}
-              />
-              <label htmlFor={`webinarEnded-${webinarDate}`} className="text-xs text-gray-500">
-                Вебинар закончился (сразу переносит карточку в «Прошедшие»)
-              </label>
-            </div>
-          </div>
-        );
-      })}
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="webinarEnded"
+          checked={webinarEnded}
+          onChange={(e) => setWebinarEnded(e.target.checked)}
+        />
+        <label htmlFor="webinarEnded" className="text-xs text-gray-500">
+          Вебинар закончился (сразу переносит карточку в «Прошедшие»)
+        </label>
+      </div>
 
       <div className="space-y-3 border-t border-gray-100 pt-3">
         <p className="text-xs font-semibold text-gray-600">Компании в группе</p>
         {rows.map((row) => {
           const TimingIcon = row.marketTiming === 'BMO' ? LuSunrise : LuSunset;
+          const reportDate = webinarDate ? calculateReportDate(webinarDate, row.marketTiming) : null;
           return (
             <div key={row.id} className="border border-gray-200 rounded-md p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -249,6 +200,12 @@ export default function AdminGroupForm({ groupEarnings, companies, onSave, onCan
                   <TimingIcon className="w-4 h-4" />
                 </span>
               </div>
+
+              {reportDate ? (
+                <p className="text-xs text-gray-400">
+                  Дата отчёта (расчёт): <span className="font-semibold text-gray-500">{formatDisplayDate(reportDate)}</span>
+                </p>
+              ) : null}
 
               <div className="flex space-x-3">
                 <input

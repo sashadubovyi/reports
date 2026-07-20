@@ -16,7 +16,7 @@ import { useFirestoreQ1Earnings } from '../hooks/useFirestoreQ1Earnings.js';
 import { useFirestoreTradingHistory } from '../hooks/useFirestoreTradingHistory.js';
 import { fetchEarningsDiscrepancies, shouldRunCheck } from '../utils/finnhubCheck.js';
 import { calculateWebinarDate, deriveQuarterLabel } from '../utils/dateUtils.js';
-import { findActiveEarning, getGroupSharedFields, groupByReportDate } from '../utils/groupEarnings.js';
+import { findActiveEarning, getGroupSharedFields, groupByWebinarDate } from '../utils/groupEarnings.js';
 
 // 'closed' | 'newCard' | 'addToGroup' | 'editGroup'
 export default function AdminPage({ earnings, setEarnings, companies, onSaveCompany, onDeleteCompany }) {
@@ -102,29 +102,26 @@ export default function AdminPage({ earnings, setEarnings, companies, onSaveComp
     closeForm();
   }
 
-  function handleEditGroup(reportDate) {
-    const groups = groupByReportDate(activeEarnings);
-    setEditingGroupEarnings(groups.get(reportDate) || []);
+  // Groups are keyed by WEBINAR date everywhere in the admin now — the same
+  // grouping the site renders — so every action below maps 1:1 to one card.
+  function handleEditGroup(webinarDate) {
+    const groups = groupByWebinarDate(activeEarnings);
+    setEditingGroupEarnings(groups.get(webinarDate) || []);
     setFormMode('editGroup');
   }
 
-  // When a report-date group spans two webinars (BMO same day + AMC next
-  // trading day), the quick toggle only affects the group's own-day webinar —
-  // AMC members belong to the next day's card, which ends on its own.
-  function handleToggleWebinarEnded(reportDate) {
+  function handleToggleWebinarEnded(webinarDate) {
     setActiveEarnings((prev) => {
-      const group = prev.filter((e) => e.reportDate === reportDate);
-      const webinarDates = new Set(group.map((e) => calculateWebinarDate(e.reportDate, e.marketTiming)));
-      const affects = (e) =>
-        e.reportDate === reportDate &&
-        (webinarDates.size === 1 || calculateWebinarDate(e.reportDate, e.marketTiming) === reportDate);
-      const isEnded = prev.some((e) => affects(e) && e.webinarEnded);
-      return prev.map((e) => (affects(e) ? { ...e, webinarEnded: !isEnded } : e));
+      const inGroup = (e) => calculateWebinarDate(e.reportDate, e.marketTiming) === webinarDate;
+      const isEnded = prev.some((e) => inGroup(e) && e.webinarEnded);
+      return prev.map((e) => (inGroup(e) ? { ...e, webinarEnded: !isEnded } : e));
     });
   }
 
-  function handleDeleteGroup(reportDate) {
-    setActiveEarnings((prev) => prev.filter((e) => e.reportDate !== reportDate));
+  function handleDeleteGroup(webinarDate) {
+    setActiveEarnings((prev) =>
+      prev.filter((e) => calculateWebinarDate(e.reportDate, e.marketTiming) !== webinarDate),
+    );
   }
 
   function handleEditCompany(ticker) {
