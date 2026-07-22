@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { LuMoon, LuSun } from 'react-icons/lu';
 import CompanyLogo from '../components/CompanyLogo.jsx';
 import CompanyModal from '../components/CompanyModal.jsx';
 import Footer from '../components/Footer.jsx';
@@ -89,13 +88,11 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
       <div className="divide-y divide-gray-100">
         {earnings.map((earning) => {
           const company = companyByTicker.get(earning.ticker);
-          const timingLabel = earning.marketTiming === 'BMO' ? 'До открытия' : 'После закрытия';
-          const TimingIcon = earning.marketTiming === 'BMO' ? LuSun : LuMoon;
           const gapDollar = formatSigned(earning.gapDollar, { prefix: '$' });
           const gapPercent = formatSigned(earning.gapPercent, { suffix: '%' });
           const gap = gapDollar || gapPercent;
           return (
-            <div key={earning.id} className="px-4 py-3 space-y-2">
+            <div key={earning.id} className="px-4 py-3">
               <div className="flex items-start justify-between gap-2">
                 <button
                   type="button"
@@ -111,29 +108,10 @@ function PastEarningsCard({ webinarDate, earnings, companyByTicker }) {
                     <p className="text-xs text-gray-500">{earning.quarter}</p>
                   </div>
                 </button>
-                <span
-                  role="img"
-                  className="p-1.5 rounded bg-blue-50 text-brand flex-shrink-0"
-                  title={`Отчёт: ${timingLabel}`}
-                  aria-label={`Отчёт: ${timingLabel}`}
-                >
-                  <TimingIcon className="w-4 h-4" />
-                </span>
-              </div>
-
-              <div className="flex text-sm">
-                <div className="flex-1 space-y-1">
-                  <p className="text-gray-500 text-xs">EPS (прогноз)</p>
-                  <p className="font-semibold text-gray-800">{earning.epsEstimate || '—'}</p>
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-gray-500 text-xs">Выручка (прогноз)</p>
-                  <p className="font-semibold text-gray-800">{earning.revenueEstimate || '—'}</p>
-                </div>
                 {gap ? (
-                  <div className="flex-1 space-y-1">
+                  <div className="text-right flex-shrink-0 space-y-1">
                     <p className="text-gray-500 text-xs">Гэп на открытии</p>
-                    <p className={`font-semibold ${gap.positive ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`font-semibold text-sm ${gap.positive ? 'text-green-600' : 'text-red-600'}`}>
                       {gapDollar ? gapDollar.text : ''}
                       {gapDollar && gapPercent ? ' ' : ''}
                       {gapPercent ? `(${gapPercent.text})` : ''}
