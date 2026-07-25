@@ -13,7 +13,7 @@ export default function Footer() {
           onClick={() => setStrategyOpen(true)}
           className="w-full flex items-center justify-between gap-2 bg-gray-800 hover:bg-gray-700 transition-colors text-gray-100 font-semibold rounded-lg px-4 py-3 text-sm"
         >
-          <span>Как формируется прибыль</span>
+          <span>Как это работает?</span>
           <LuChevronRight className="w-4 h-4 flex-shrink-0" />
         </button>
       </div>
