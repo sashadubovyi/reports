@@ -1,26 +1,89 @@
+import {
+  LuArrowUpRight,
+  LuBell,
+  LuCheck,
+  LuClock,
+  LuFileText,
+  LuLightbulb,
+  LuSettings,
+  LuShieldCheck,
+  LuTarget,
+  LuTrendingUp,
+} from 'react-icons/lu';
 import Modal from './Modal.jsx';
 
-function Section({ title, subtitle, children }) {
+function SectionHeading({ icon: Icon, children }) {
   return (
-    <div className="space-y-1.5">
-      <h3 className="text-sm font-bold text-gray-900">
-        {title}
-        {subtitle ? <span className="block text-xs font-normal text-gray-500">{subtitle}</span> : null}
-      </h3>
+    <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+      <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-blue-50 text-brand flex items-center justify-center">
+        <Icon className="w-4 h-4" />
+      </span>
       {children}
+    </h3>
+  );
+}
+
+function Bullet({ children }) {
+  return (
+    <li className="flex gap-2 text-sm text-gray-700 leading-relaxed">
+      <LuCheck className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+      <span>{children}</span>
+    </li>
+  );
+}
+
+// Horizontal step timeline of a single trade — makes the "narrow window"
+// idea instantly readable. Wraps to two rows on very small screens.
+function TradeTimeline() {
+  const steps = [
+    { icon: LuFileText, title: 'Выходит отчёт', note: 'Компания публикует результаты' },
+    { icon: LuClock, title: 'Премаркет', note: 'Входим за 20–30 минут до открытия' },
+    { icon: LuBell, title: 'Открытие биржи', note: 'Приходят крупные деньги' },
+    { icon: LuCheck, title: 'Выходим', note: 'Через 5–15 минут' },
+  ];
+  return (
+    <div className="bg-gray-50 rounded-lg p-3">
+      <div className="flex items-stretch justify-between gap-1">
+        {steps.map((step, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center text-center relative">
+            {i < steps.length - 1 ? (
+              <span className="hidden sm:block absolute top-4 left-1/2 w-full h-0.5 bg-blue-200" aria-hidden="true" />
+            ) : null}
+            <span className="relative z-10 w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center">
+              <step.icon className="w-4 h-4" />
+            </span>
+            <p className="mt-1.5 text-[11px] font-semibold text-gray-800 leading-tight">{step.title}</p>
+            <p className="text-[10px] text-gray-500 leading-tight mt-0.5">{step.note}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function Bullet({ label, children }) {
+// Simple price-gap illustration: yesterday's close, the jump at open, and
+// the slice we capture. Drawn inline so there are no external images.
+function GapDiagram() {
   return (
-    <li className="flex gap-2 text-sm text-gray-700 leading-relaxed">
-      <span className="text-brand flex-shrink-0 mt-0.5">❖</span>
-      <span>
-        <span className="font-semibold text-gray-800">{label}: </span>
-        {children}
-      </span>
-    </li>
+    <div className="bg-gray-50 rounded-lg p-3">
+      <svg viewBox="0 0 300 130" className="w-full h-auto" role="img" aria-label="Схема ценового разрыва (гэпа)">
+        {/* baseline: yesterday's close */}
+        <line x1="10" y1="90" x2="140" y2="90" stroke="#94a3b8" strokeWidth="2.5" />
+        <text x="10" y="105" fontSize="9" fill="#64748b">Закрытие вчера</text>
+
+        {/* the gap jump */}
+        <line x1="140" y1="90" x2="160" y2="40" stroke="#10b981" strokeWidth="2.5" strokeDasharray="4 3" />
+
+        {/* after-open move (the slice we take) */}
+        <line x1="160" y1="40" x2="290" y2="25" stroke="#10b981" strokeWidth="2.5" />
+        <text x="185" y="18" fontSize="9" fill="#059669" fontWeight="600">Наша прибыль</text>
+
+        {/* gap bracket */}
+        <text x="150" y="70" fontSize="9" fill="#059669" fontWeight="600" textAnchor="middle">Гэп</text>
+        <circle cx="160" cy="40" r="3.5" fill="#10b981" />
+        <text x="150" y="122" fontSize="9" fill="#64748b" textAnchor="middle">Открытие биржи ↑</text>
+      </svg>
+    </div>
   );
 }
 
@@ -28,97 +91,95 @@ export default function ProfitStrategyModal({ open, onClose }) {
   return (
     <Modal open={open} onClose={onClose}>
       <div className="p-5 space-y-5">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 leading-tight pr-8">Investment Strategy: Earnings Gap Capture</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Инвестиционная стратегия: захват ценовых разрывов в период отчетности
+        <div className="pr-8">
+          <h2 className="text-lg font-bold text-gray-900 leading-tight">Как формируется прибыль</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Мы не угадываем отчёты — мы зарабатываем на движении цены, которое уже произошло.
           </p>
         </div>
 
-        <Section title="Executive Summary" subtitle="Краткий обзор стратегии">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Настоящая стратегия ориентирована на генерацию избыточной доходности (альфы) за счет монетизации
-            краткосрочных ценовых дисбалансов, возникающих в период раскрытия квартальной финансовой отчетности.
-          </p>
-        </Section>
+        <TradeTimeline />
 
-        <div className="space-y-1.5">
-          <h3 className="text-sm font-bold text-gray-900">Методология и рыночные неэффективности</h3>
+        <div className="space-y-2">
+          <SectionHeading icon={LuTrendingUp}>В чём суть</SectionHeading>
           <p className="text-sm text-gray-700 leading-relaxed">
-            В основе подхода лежит использование временного лага и дефицита ликвидности в ходе премаркет-сессии
-            (Pre-market). В момент публикации финансовых результатов рынок зачастую демонстрирует инертность или
-            избыточную эмоциональную реакцию. Поскольку основной объем институциональной ликвидности активируется лишь
-            с открытием регулярной торговой сессии, возникает возможность для арбитража ценовых разрывов (гэпов).
+            Каждый квартал компании публикуют отчёты о своих результатах. Сразу после выхода отчёта цена акции резко
+            двигается — вверх или вниз. Этот скачок цены на открытии торгов называется «гэп». Именно на таких движениях
+            мы и зарабатываем.
           </p>
         </div>
 
-        <Section title="Methodology & Execution" subtitle="Механика исполнения">
+        <GapDiagram />
+
+        <div className="space-y-2">
+          <SectionHeading icon={LuLightbulb}>Почему это работает</SectionHeading>
           <p className="text-sm text-gray-700 leading-relaxed">
-            Стратегия базируется на принципе «входа на свершившемся факте» (Post-Event Entry), что радикально снижает
-            рыночные риски по сравнению с направленными ставками «до события». Вместо прогнозирования результатов
-            отчетности, мы работаем с фактической реакцией рынка на уже опубликованные данные.
+            Отчёты обычно выходят, когда основная биржа ещё закрыта — на премаркете. В это время торгует мало
+            участников, поэтому цена реагирует медленно или слишком эмоционально. Когда через 20–30 минут открывается
+            основная сессия и приходят крупные деньги, цена доходит до справедливого уровня. Мы входим до этого движения
+            и забираем его.
           </p>
-          <ul className="space-y-2 mt-2">
-            <Bullet label="Entry Point (Точка входа)">
-              Сессия премаркета, за 20–30 минут до открытия NYSE/NASDAQ. В этот момент данные отчета (EPS, Revenue,
-              Guidance) уже публичны и вектор движения определен.
+        </div>
+
+        <div className="space-y-2">
+          <SectionHeading icon={LuSettings}>Как проходит сделка</SectionHeading>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            Мы не гадаем, каким будет отчёт. Мы ждём, пока он выйдет, смотрим на реакцию рынка и только потом входим — по
+            факту, а не по прогнозу. Это убирает главный риск.
+          </p>
+          <ul className="space-y-2 mt-1">
+            <Bullet>
+              <span className="font-semibold text-gray-800">Когда входим:</span> на премаркете, за 20–30 минут до
+              открытия биржи (NYSE/NASDAQ). Отчёт уже вышел, направление понятно.
             </Bullet>
-            <Bullet label="Asset Class (Класс активов)">
-              CFD (Contract for Difference) — обеспечивает исполнение в обоих направлениях (Long/Short) и эффективное
-              использование капитала.
+            <Bullet>
+              <span className="font-semibold text-gray-800">Чем торгуем:</span> CFD — можно зарабатывать и на росте, и на
+              падении цены.
             </Bullet>
-            <Bullet label="Holding Period (Срок экспозиции)">
-              Low-latency exposure. Закрытие позиции в течение первых 5–15 минут регулярной сессии.
+            <Bullet>
+              <span className="font-semibold text-gray-800">Сколько держим:</span> от 5 до 15 минут после открытия.
+              Быстро вошли — быстро вышли.
             </Bullet>
           </ul>
-        </Section>
-
-        <Section title="Risk Management & Capital Allocation" subtitle="Управление рисками и распределение капитала">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            В рамках модели «Aggressive Growth» (Агрессивный рост) мы применяем следующие параметры риск-менеджмента,
-            адаптированные под целевой депозит в $10,000. Данные лимиты направлены на максимизацию оборачиваемости
-            капитала при строгом контроле кумулятивной просадки.
-          </p>
-          <ul className="space-y-2 mt-2">
-            <Bullet label="Allocation per Event (Объем инвестиций на одну сделку)">
-              20% от текущего AUM (Assets Under Management).
-            </Bullet>
-            <Bullet label="Leverage (LTV) (Кредитное плечо)">1:5 (Кредитное плечо).</Bullet>
-            <Bullet label="Effective Position Size (Эффективный размер позиции)">
-              Объем позиции в рынке эквивалентен 200% от текущего баланса.
-            </Bullet>
-            <Bullet label="Risk Mitigation (Снижение рисков)">
-              Вход после публикации отчета гарантирует защиту от внезапных негативных сюрпризов, так как мы работаем с
-              уже подтвержденным импульсом.
-            </Bullet>
-          </ul>
-        </Section>
-
-        <Section title="Analyst Conclusion" subtitle="Заключение">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Представленная модель демонстрирует потенциал экспоненциального роста капитала при сохранении строгого
-            регламента по времени экспозиции активов. Использование торгового окна за 20–30 минут до открытия
-            регулярной сессии трансформирует стратегию из спекулятивной деятельности в высокотехнологичную процедуру
-            извлечения прибыли.
-          </p>
-          <p className="text-sm text-gray-700 leading-relaxed mt-2">
-            Ключевым фактором устойчивости является исключение «прогнозирования» как такового: мы входим в рынок только
-            тогда, когда фундаментальный драйвер уже подтвержден фактами и цифрами отчетности.
-          </p>
-        </Section>
-
-        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
-          <p className="text-sm text-gray-800">
-            <span className="font-semibold">Уровень риска (Risk Level): Минимальный</span>
-            <span className="block text-xs text-gray-600 mt-0.5">
-              обусловлено отсутствием позиций в момент публикации отчета и жестким тайм-менеджментом.
-            </span>
-          </p>
         </div>
 
-        <div className="border-t border-gray-100 pt-3">
-          <p className="text-xs font-semibold text-gray-700">Approved for Implementation. Strategic Portfolio Management Team</p>
-          <p className="text-xs text-gray-500">Утверждено к реализации. Группа стратегического управления портфелями</p>
+        <div className="space-y-2">
+          <SectionHeading icon={LuShieldCheck}>Управление рисками</SectionHeading>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            Работаем по модели агрессивного роста на депозит от $10 000. Правила простые:
+          </p>
+          <ul className="space-y-2 mt-1">
+            <Bullet>
+              <span className="font-semibold text-gray-800">На одну сделку —</span> 20% депозита.
+            </Bullet>
+            <Bullet>
+              <span className="font-semibold text-gray-800">Плечо 1:5.</span> Значит объём позиции в 5 раз больше
+              вложенной в сделку суммы.
+            </Bullet>
+            <Bullet>
+              <span className="font-semibold text-gray-800">Входим только после выхода отчёта —</span> никаких внезапных
+              сюрпризов, направление уже известно.
+            </Bullet>
+          </ul>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-3 flex gap-2.5">
+          <LuTarget className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Почему риск минимальный</p>
+            <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">
+              В момент выхода отчёта у нас нет открытых позиций. Мы входим, только когда всё уже понятно, и держим сделку
+              считанные минуты.
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-3 flex items-center gap-2 text-gray-500">
+          <LuArrowUpRight className="w-4 h-4 flex-shrink-0 text-brand" />
+          <p className="text-xs">
+            <span className="font-semibold text-gray-700">Группа стратегического управления портфелями.</span>{' '}
+            Стратегия утверждена к реализации.
+          </p>
         </div>
       </div>
     </Modal>
