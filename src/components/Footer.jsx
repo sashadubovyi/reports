@@ -1,6 +1,23 @@
+import { useState } from 'react';
+import { LuChevronRight } from 'react-icons/lu';
+import ProfitStrategyModal from './ProfitStrategyModal.jsx';
+
 export default function Footer() {
+  const [strategyOpen, setStrategyOpen] = useState(false);
+
   return (
     <footer className="bg-gray-900 text-gray-400 px-4 py-6">
+      <div className="max-w-2xl mx-auto mb-5">
+        <button
+          type="button"
+          onClick={() => setStrategyOpen(true)}
+          className="w-full flex items-center justify-between gap-2 bg-gray-800 hover:bg-gray-700 transition-colors text-gray-100 font-semibold rounded-lg px-4 py-3 text-sm"
+        >
+          <span>Как формируется прибыль</span>
+          <LuChevronRight className="w-4 h-4 flex-shrink-0" />
+        </button>
+      </div>
+
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
         <div className="text-[11px] leading-snug space-y-0.5 text-left">
           <p className="font-semibold text-gray-300">Правовая информация</p>
@@ -20,6 +37,8 @@ export default function Footer() {
           />
         </a>
       </div>
+
+      <ProfitStrategyModal open={strategyOpen} onClose={() => setStrategyOpen(false)} />
     </footer>
   );
 }
