@@ -1,7 +1,9 @@
-import { LuExternalLink } from 'react-icons/lu';
+import { useState } from 'react';
+import { LuChevronDown, LuExternalLink } from 'react-icons/lu';
 import { useCompanyProfile } from '../hooks/useCompanyProfile.js';
 import CompanyLogo from './CompanyLogo.jsx';
 import Modal from './Modal.jsx';
+import TradingViewAnalysis from './TradingViewAnalysis.jsx';
 import TradingViewTape from './TradingViewTape.jsx';
 
 // Finnhub returns marketCapitalization in millions USD.
@@ -35,6 +37,7 @@ function Row({ label, value }) {
 
 export default function CompanyModal({ ticker, company, onClose }) {
   const { profile, loading } = useCompanyProfile(ticker);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   const name = company?.name || profile?.name || ticker;
   const domain = company?.domain;
@@ -50,6 +53,9 @@ export default function CompanyModal({ ticker, company, onClose }) {
 
   const hasLiveData = loading || marketCap || industry || exchange || website;
 
+  // Fully qualified EXCHANGE:TICKER used by both TradingView widgets.
+  const tvSymbol = company?.tvSymbol || deriveTvSymbol(profile, ticker) || ticker;
+
   return (
     <Modal open onClose={onClose}>
       <div className="p-5">
@@ -62,7 +68,7 @@ export default function CompanyModal({ ticker, company, onClose }) {
         </div>
 
         {company?.tvSymbol || !loading ? (
-          <TradingViewTape symbols={company?.tvSymbol || deriveTvSymbol(profile, ticker) || ticker} />
+          <TradingViewTape symbols={tvSymbol} />
         ) : (
           <div className="mb-4 min-h-[46px] rounded-lg border border-gray-100 flex items-center justify-center text-xs text-gray-400">
             Загружаем котировки...
@@ -114,6 +120,21 @@ export default function CompanyModal({ ticker, company, onClose }) {
             </>
           ) : null}
         </div>
+
+        {!loading ? (
+          showAnalysis ? (
+            <TradingViewAnalysis symbol={tvSymbol} />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowAnalysis(true)}
+              className="mt-4 w-full flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 font-semibold rounded-md py-2.5 text-sm"
+            >
+              Показать больше информации
+              <LuChevronDown className="w-4 h-4" />
+            </button>
+          )
+        ) : null}
       </div>
     </Modal>
   );
