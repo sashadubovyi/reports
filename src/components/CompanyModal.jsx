@@ -4,7 +4,6 @@ import { useCompanyProfile } from '../hooks/useCompanyProfile.js';
 import CompanyLogo from './CompanyLogo.jsx';
 import Modal from './Modal.jsx';
 import TradingViewAnalysis from './TradingViewAnalysis.jsx';
-import TradingViewTape from './TradingViewTape.jsx';
 
 // Finnhub returns marketCapitalization in millions USD.
 function formatMarketCap(millionsUSD) {
@@ -14,10 +13,10 @@ function formatMarketCap(millionsUSD) {
   return `$${millionsUSD.toFixed(0)} млн`;
 }
 
-// The tv-ticker-tape widget needs fully qualified EXCHANGE:TICKER symbols —
-// a bare ticker renders, but its click-through link is broken (JPM-undefined).
-// Derive the prefix from the Finnhub profile's exchange name; companies with
-// an explicit tvSymbol override (European listings) skip this entirely.
+// The TradingView analysis widget needs a fully qualified EXCHANGE:TICKER
+// symbol; a bare ticker can resolve to the wrong listing. Derive the prefix
+// from the Finnhub profile's exchange name; companies with an explicit
+// tvSymbol override (European listings) skip this entirely.
 function deriveTvSymbol(profile, ticker) {
   const exchange = (profile?.exchange || '').toUpperCase();
   if (exchange.includes('NASDAQ')) return `NASDAQ:${ticker}`;
@@ -66,14 +65,6 @@ export default function CompanyModal({ ticker, company, onClose }) {
             <p className="text-xs text-gray-500 font-mono">{ticker}</p>
           </div>
         </div>
-
-        {company?.tvSymbol || !loading ? (
-          <TradingViewTape symbols={tvSymbol} />
-        ) : (
-          <div className="mb-4 min-h-[46px] rounded-lg border border-gray-100 flex items-center justify-center text-xs text-gray-400">
-            Загружаем котировки...
-          </div>
-        )}
 
         {description ? (
           <p className="text-sm text-gray-700 leading-relaxed mb-4">{description}</p>
